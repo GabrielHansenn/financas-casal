@@ -14,4 +14,6 @@ export type GoalItem = {
   deadline: string | null;
   archived: boolean;
   contributions: GoalContribution[];
+  /** Dream this goal came from (Quadro dos Sonhos), if any */
+  dream: { id: string; title: string; status: "dreaming" | "planning" | "achieved" } | null;
 };

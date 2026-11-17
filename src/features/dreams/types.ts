@@ -1,5 +1,6 @@
 import type { WorkspaceType } from "@/features/workspaces/active-workspace";
 import type { DreamCategory, DreamHorizon, DreamStatus } from "./labels";
+import type { LinkedGoal } from "./lifecycle";
 
 export type DreamItem = {
   id: string;
@@ -12,6 +13,8 @@ export type DreamItem = {
   estimatedCostCents: number | null;
   status: DreamStatus;
   goalId: string | null;
+  /** The linked goal with its current balance (planning dreams, and achieved ones that kept it) */
+  goal: LinkedGoal | null;
   achievedAt: string | null;
   coverPath: string | null;
   /** Short-lived signed URL (private bucket); null when there is no image */

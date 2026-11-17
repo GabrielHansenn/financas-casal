@@ -2,10 +2,12 @@
 
 import { refresh } from "next/cache";
 import { z } from "@/lib/zod";
+import { todayISO } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceContext } from "@/features/workspaces/active-workspace";
 import { isDreamImagePath } from "./board";
-import { dreamImageInputSchema, dreamInputSchema } from "./schemas";
+import { isValidAchievedDate, statusAfterUndo } from "./lifecycle";
+import { achieveDreamSchema, convertDreamSchema, dreamImageInputSchema, dreamInputSchema } from "./schemas";
 import { removeDreamFile, removeDreamFolder } from "./storage";
 
 type Result = { ok: true } | { ok: false; error: string };
@@ -173,6 +175,85 @@ export async function reorderDreams(raw: unknown): Promise<Result> {
     console.error("[dreams] reorder", error.code, error.message);
     return { ok: false, error: "Não foi possível salvar a ordem." };
   }
+  refresh();
+  return { ok: true };
+}
+
+export type ConvertDreamResult = { ok: true; goalId: string } | { ok: false; error: string };
+
+/** "Transformar em meta": creates the goal and links it atomically (RPC, RLS applies). */
+export async function convertDreamToGoal(raw: unknown): Promise<ConvertDreamResult> {
+  const parsed = convertDreamSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
+  const input = parsed.data;
+
+  await getWorkspaceContext();
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("convert_dream_to_goal", {
+    p_dream_id: input.dreamId,
+    p_name: input.name,
+    p_target_cents: input.targetCents,
+    p_deadline: input.deadline ?? undefined,
+  });
+  if (error || !data) {
+    if (error?.code === "P0002") return { ok: false, error: "Sonho não encontrado." };
+    if (error?.code === "23514") return { ok: false, error: "Este sonho já virou meta ou já foi realizado." };
+    console.error("[dreams] convert", error?.code, error?.message);
+    return { ok: false, error: "Não foi possível criar a meta. Tente novamente." };
+  }
+  refresh();
+  return { ok: true, goalId: data };
+}
+
+/** Marks a dream as achieved on a date (today or earlier). The linked goal, if any, stays linked. */
+export async function markDreamAchieved(raw: unknown): Promise<Result> {
+  const parsed = achieveDreamSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
+  const { dreamId, achievedAt } = parsed.data;
+  if (!isValidAchievedDate(achievedAt, todayISO())) {
+    return { ok: false, error: "Escolha uma data até hoje." };
+  }
+
+  await getWorkspaceContext();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("dreams")
+    .update({ status: "achieved", achieved_at: achievedAt })
+    .eq("id", dreamId)
+    .neq("status", "achieved")
+    .select("id");
+  if (error) {
+    console.error("[dreams] achieve", error.code, error.message);
+    return { ok: false, error: "Não foi possível marcar como realizado." };
+  }
+  if (!data.length) return { ok: false, error: "Sonho não encontrado ou já realizado." };
+  refresh();
+  return { ok: true };
+}
+
+/** Undo "achieved": back to planning if the goal is still linked, else dreaming; drops the photo. */
+export async function undoDreamAchieved(dreamId: string): Promise<Result> {
+  const parsed = z.guid().safeParse(dreamId);
+  if (!parsed.success) return { ok: false, error: "Sonho inválido." };
+
+  await getWorkspaceContext();
+  const supabase = await createClient();
+  const { data: dream } = await supabase
+    .from("dreams")
+    .select("id, status, goal_id, achieved_image_path")
+    .eq("id", parsed.data)
+    .maybeSingle();
+  if (!dream || dream.status !== "achieved") return { ok: false, error: "Sonho não encontrado." };
+
+  const { error } = await supabase
+    .from("dreams")
+    .update({ status: statusAfterUndo(dream.goal_id), achieved_at: null, achieved_image_path: null })
+    .eq("id", dream.id);
+  if (error) {
+    console.error("[dreams] undo achieve", error.code, error.message);
+    return { ok: false, error: "Não foi possível desfazer." };
+  }
+  if (dream.achieved_image_path) await removeDreamFile(supabase, dream.achieved_image_path);
   refresh();
   return { ok: true };
 }

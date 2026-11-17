@@ -7,8 +7,10 @@ import {
   ArrowUpIcon,
   CheckCircle2Icon,
   PencilIcon,
+  SparklesIcon,
   Trash2Icon,
 } from "lucide-react";
+import Link from "next/link";
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -53,7 +55,8 @@ export function GoalCard({
     });
 
   return (
-    <Card className={cn(goal.archived && "opacity-75")}>
+    // id: target of "Ver meta" links from the dreams board (/metas#goal-<id>)
+    <Card id={`goal-${goal.id}`} className={cn("scroll-mt-20 target:ring-2 target:ring-primary", goal.archived && "opacity-75")}>
       <CardHeader className="grid gap-3">
         <div className="flex items-start justify-between gap-3">
           <div className="grid min-w-0 gap-1">
@@ -70,6 +73,14 @@ export function GoalCard({
               <span className="font-semibold text-foreground">{formatBRL(goal.currentCents)}</span> de{" "}
               {formatBRL(goal.targetCents)} · {percentFormatter.format(progress.fraction)}
             </p>
+            {goal.dream ? (
+              <Link
+                href={`/sonhos/${goal.dream.id}`}
+                className="flex w-fit items-center gap-1 text-xs text-primary underline-offset-4 hover:underline"
+              >
+                <SparklesIcon className="size-3.5" aria-hidden /> Sonho: {goal.dream.title}
+              </Link>
+            ) : null}
           </div>
           <GoalDialog
             workspaceId={workspaceId}
@@ -85,7 +96,9 @@ export function GoalCard({
         <GoalProgressBar fraction={progress.fraction} reached={progress.reached} label={`Progresso de ${goal.name}`} />
         <p className="text-xs text-muted-foreground">
           {progress.reached
-            ? "Meta alcançada. Arquive quando não precisar mais acompanhar."
+            ? goal.dream?.status === "planning"
+              ? "Meta alcançada! Abra o sonho para marcá-lo como realizado."
+              : "Meta alcançada. Arquive quando não precisar mais acompanhar."
             : progress.overdue
               ? `O prazo (${formatDateBR(goal.deadline!)}) passou. Faltam ${formatBRL(progress.remainingCents)}.`
               : progress.monthlyNeededCents !== null
@@ -182,7 +195,7 @@ export function GoalCard({
               </Button>
             }
             title={`Excluir a meta "${goal.name}"?`}
-            description="O histórico de aportes e resgates também será apagado. Para só tirar da lista, arquive."
+            description={`O histórico de aportes e resgates também será apagado. Para só tirar da lista, arquive.${goal.dream && goal.dream.status === "planning" ? ` O sonho "${goal.dream.title}" volta para Sonhando.` : ""}`}
             confirmLabel="Excluir meta"
             confirmText={goal.contributions.length > 0 ? goal.name : undefined}
             successMessage="Meta excluída"

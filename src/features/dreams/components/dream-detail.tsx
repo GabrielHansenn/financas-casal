@@ -15,6 +15,7 @@ import { categoryInfo, DREAM_STATUS_LABELS, horizonInfo } from "../labels";
 import type { DreamItem, DreamsBoardData } from "../types";
 import { DreamCover } from "./dream-cover";
 import { DreamForm } from "./dream-form";
+import { DreamLifecycle } from "./dream-lifecycle";
 
 export function DreamDetail({
   dream,
@@ -90,6 +91,8 @@ export function DreamDetail({
               </dd>
             </div>
           </dl>
+
+          <DreamLifecycle dream={dream} today={board.today} />
 
           {children}
         </div>

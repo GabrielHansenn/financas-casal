@@ -3,6 +3,7 @@ import { todayISO } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceContext } from "@/features/workspaces/active-workspace";
 import { signDreamImages } from "./storage";
+import type { LinkedGoal } from "./lifecycle";
 import type { DreamItem, DreamMember, DreamsBoardData } from "./types";
 
 const DREAM_COLUMNS =
@@ -26,7 +27,34 @@ type DreamRow = {
   created_by: string;
 };
 
-function toItem(row: DreamRow, urls: Map<string, string>): DreamItem {
+/** Linked goals (name, target, balance) for the given goal ids. RLS applies. */
+async function loadGoals(goalIds: string[]): Promise<Map<string, LinkedGoal>> {
+  const ids = [...new Set(goalIds)];
+  if (ids.length === 0) return new Map();
+  const supabase = await createClient();
+  const [goals, progress] = await Promise.all([
+    supabase.from("goals").select("id, name, target_cents, deadline, archived_at").in("id", ids),
+    supabase.from("goal_progress").select("goal_id, current_cents").in("goal_id", ids),
+  ]);
+  if (goals.error) throw goals.error;
+  if (progress.error) throw progress.error;
+  const current = new Map(progress.data.map((p) => [p.goal_id, p.current_cents ?? 0]));
+  return new Map(
+    goals.data.map((g) => [
+      g.id,
+      {
+        id: g.id,
+        name: g.name,
+        targetCents: g.target_cents,
+        currentCents: current.get(g.id) ?? 0,
+        deadline: g.deadline,
+        archived: g.archived_at !== null,
+      },
+    ]),
+  );
+}
+
+function toItem(row: DreamRow, urls: Map<string, string>, goals: Map<string, LinkedGoal>): DreamItem {
   return {
     id: row.id,
     workspaceId: row.workspace_id,
@@ -38,6 +66,7 @@ function toItem(row: DreamRow, urls: Map<string, string>): DreamItem {
     estimatedCostCents: row.estimated_cost_cents,
     status: row.status,
     goalId: row.goal_id,
+    goal: row.goal_id ? (goals.get(row.goal_id) ?? null) : null,
     achievedAt: row.achieved_at,
     coverPath: row.cover_image_path,
     coverUrl: row.cover_image_path ? (urls.get(row.cover_image_path) ?? null) : null,
@@ -75,10 +104,13 @@ export async function getDreamsBoard(): Promise<DreamsBoardData> {
   if (dreamsResult.error) throw dreamsResult.error;
 
   const rows = dreamsResult.data;
-  const urls = await signDreamImages(
-    supabase,
-    rows.flatMap((r) => [r.cover_image_path, r.achieved_image_path].filter((p): p is string => !!p)),
-  );
+  const [urls, goals] = await Promise.all([
+    signDreamImages(
+      supabase,
+      rows.flatMap((r) => [r.cover_image_path, r.achieved_image_path].filter((p): p is string => !!p)),
+    ),
+    loadGoals(rows.flatMap((r) => (r.goal_id ? [r.goal_id] : []))),
+  ]);
 
   return {
     workspaceId: active.id,
@@ -86,7 +118,7 @@ export async function getDreamsBoard(): Promise<DreamsBoardData> {
     currentUserId: user.id,
     today: todayISO(),
     members,
-    dreams: rows.map((r) => toItem(r, urls)),
+    dreams: rows.map((r) => toItem(r, urls, goals)),
   };
 }
 
@@ -103,12 +135,13 @@ export async function getDream(id: string): Promise<{ dream: DreamItem; board: O
   if (error) throw error;
   if (!row) return null;
 
-  const [urls, members] = await Promise.all([
+  const [urls, members, goals] = await Promise.all([
     signDreamImages(supabase, [row.cover_image_path, row.achieved_image_path].filter((p): p is string => !!p)),
     loadMembers(active.id),
+    loadGoals(row.goal_id ? [row.goal_id] : []),
   ]);
   return {
-    dream: toItem(row, urls),
+    dream: toItem(row, urls, goals),
     board: { workspaceId: active.id, workspaceType: active.type, currentUserId: user.id, today: todayISO(), members },
   };
 }

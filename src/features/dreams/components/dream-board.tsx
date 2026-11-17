@@ -15,6 +15,7 @@ import type { DreamItem, DreamsBoardData } from "../types";
 import { DreamCard } from "./dream-card";
 import { DreamCover } from "./dream-cover";
 import { DreamForm } from "./dream-form";
+import { DreamGoalProgress } from "./dream-goal-progress";
 import { DreamReorder } from "./dream-reorder";
 
 const SELECT_CLASS =
@@ -163,6 +164,11 @@ export function DreamBoard({ data, filters }: { data: DreamsBoardData; filters: 
                   viewerId={data.currentUserId}
                   memberNames={memberNames}
                   showOwner={isShared}
+                  footer={
+                    dream.status === "planning" && dream.goal ? (
+                      <DreamGoalProgress goal={dream.goal} status={dream.status} today={data.today} compact />
+                    ) : undefined
+                  }
                 />
               ))}
             </div>
