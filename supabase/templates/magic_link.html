@@ -1,0 +1,10 @@
+<h2>Seu link de acesso</h2>
+<p>Toque no botão abaixo para entrar no Finanças Casal:</p>
+<p>
+  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/"
+     style="display:inline-block;padding:12px 20px;background:#171717;color:#ffffff;border-radius:8px;text-decoration:none">
+    Entrar
+  </a>
+</p>
+<p>Ou use o código: <strong>{{ .Token }}</strong></p>
+<p style="color:#737373;font-size:12px">Se você não pediu este link, ignore este email.</p>
