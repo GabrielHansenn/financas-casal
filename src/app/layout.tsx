@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { OfflineBanner } from "@/components/pwa/offline-banner";
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -55,6 +57,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           {children}
           <Toaster richColors position="top-center" />
+          <OfflineBanner />
+          <ServiceWorkerRegister />
         </ThemeProvider>
       </body>
     </html>

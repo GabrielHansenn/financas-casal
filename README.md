@@ -205,6 +205,35 @@ Cadastre em *Settings → Environment Variables* (ambientes Production e Preview
 
 Variáveis `NEXT_PUBLIC_*` são embutidas no build. Depois de alterar alguma, faça **Redeploy**.
 
+### Checklist de deploy
+
+Antes de cada `git push` na `main`:
+
+- [ ] `npm run check` e `npm run build` passam; `npm run test:db` passa (com o Supabase local rodando).
+- [ ] Teve migration nova? `npm run db:push` e depois `npm run db:status:remote` (todas as linhas com "Remote" preenchido).
+- [ ] Mudou `public/sw.js` de forma que exija limpar o cache? Suba o `VERSION` dele.
+
+Uma vez (ou ao trocar de domínio):
+
+- [ ] Supabase → URL Configuration: Site URL e Redirect URLs com o domínio da Vercel.
+- [ ] Supabase → Confirm email ligado, senha mínima 8, SMTP próprio configurado, templates colados.
+- [ ] Vercel → as variáveis da tabela acima em Production (e Preview, se usar). `SMTP_PASSWORD` como *Sensitive*. Nenhuma `sb_secret_...` em lugar nenhum.
+- [ ] Backup manual de tempos em tempos: `npm run db:backup` (o plano grátis não tem backup automático e pausa o projeto após 7 dias sem uso).
+
+Depois do deploy, no celular:
+
+- [ ] Cadastro novo recebe o email de confirmação; magic link e convite chegam e abrem o app.
+- [ ] Instalar o app (Mais → Aplicativo) e abrir pelo ícone: abre em tela cheia.
+- [ ] Modo avião com o app aberto: aparece o aviso de sem conexão; ao recarregar, a página "Você está sem internet".
+
+## PWA e offline
+
+- **Instalável:** manifest (`src/app/manifest.ts`), ícones gerados em `src/app/icons/[variant]` e o card **Mais → Aplicativo**: no Chrome/Android ele mostra o botão de instalar; no iPhone/iPad, o passo a passo do Safari (Compartilhar → Adicionar à Tela de Início).
+- **Service worker** (`public/sw.js`, escrito à mão, registrado só em produção): guarda apenas arquivos estáticos com hash (`/_next/static`), ícones, o manifest e a página `/offline`. **Páginas e dados logados nunca são guardados no aparelho**: a navegação vai sempre para a rede e, se ela cair, mostra `/offline`. POST (Server Actions), requisições RSC e chamadas ao Supabase passam direto. `sw.js` é servido com `Cache-Control: no-store` para as atualizações chegarem na próxima visita.
+- **Queda de conexão com o app aberto:** `experimental.useOffline` (Next) segura navegações e Server Actions e as repete quando a conexão volta. O `OfflineBanner` avisa: um lançamento salvo sem sinal é enviado ao reconectar, desde que o app continue aberto.
+- **Headers de segurança** em todas as rotas (`next.config.ts`): `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`. HSTS vem da Vercel.
+- Para testar o PWA localmente: `npm run build` e `npm run start` (o service worker não é registrado no `npm run dev`). No celular pela rede local é preciso HTTPS: `npm run dev:https` não registra o SW; prefira testar no deploy da Vercel.
+
 ## Convenções
 
 - Interface em pt-BR; código, comentários, tabelas e colunas em inglês.

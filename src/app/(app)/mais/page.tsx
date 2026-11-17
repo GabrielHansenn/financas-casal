@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Suspense } from "react";
 import { PageHeader } from "@/components/page-header";
+import { InstallApp } from "@/components/pwa/install-app";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,6 +55,15 @@ export default function MorePage() {
           </CardHeader>
           <CardContent>
             <ThemeToggle />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Aplicativo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <InstallApp />
           </CardContent>
         </Card>
 
