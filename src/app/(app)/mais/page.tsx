@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import {
   CalendarClockIcon,
+  ChevronRightIcon,
   LandmarkIcon,
   LogOutIcon,
   TagsIcon,
@@ -23,7 +25,6 @@ export const metadata: Metadata = { title: "Mais" };
 
 // Sections implemented in later phases are listed as "em breve"
 const UPCOMING: { label: string; icon: LucideIcon }[] = [
-  { label: "Workspaces e convites", icon: UsersIcon },
   { label: "Contas", icon: LandmarkIcon },
   { label: "Categorias", icon: TagsIcon },
   { label: "Recorrências", icon: CalendarClockIcon },
@@ -61,6 +62,16 @@ export default function MorePage() {
           </CardHeader>
           <CardContent>
             <ul className="divide-y">
+              <li>
+                <Link
+                  href="/workspaces"
+                  className="flex items-center gap-3 py-3 transition-colors hover:text-foreground"
+                >
+                  <UsersIcon className="size-4" aria-hidden />
+                  <span className="flex-1">Workspaces e convites</span>
+                  <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
+                </Link>
+              </li>
               {UPCOMING.map(({ label, icon: Icon }) => (
                 <li key={label} className="flex items-center gap-3 py-3 text-muted-foreground">
                   <Icon className="size-4" aria-hidden />

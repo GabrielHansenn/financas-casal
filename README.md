@@ -94,6 +94,13 @@ O seed cria o workspace pessoal de cada um e o workspace "Casa". "Casa" tem cont
 - O workspace ativo fica no cookie `active_workspace_id` e é sempre revalidado contra as associações do usuário. Se o cookie for inválido, o app usa o workspace pessoal.
 - Localmente, a confirmação de email está desligada (`enable_confirmations = false`). Em produção, ligue no painel.
 
+## Workspaces e convites
+
+- Em **Mais → Workspaces e convites** (`/workspaces`), qualquer usuário pode criar um workspace compartilhado. Quem cria vira o dono.
+- O dono convida por email. O convite é enviado via SMTP (Mailpit em dev, Gmail em produção), e a tela também mostra o link para copiar ou mandar pelo WhatsApp.
+- O link (`/convite/<token>`) vale **7 dias**, é de **uso único** e só funciona para o email convidado, **depois de confirmado**. Só o hash do token fica salvo no banco: se o link se perder, convide de novo, e o convite anterior é cancelado.
+- Membros podem informar a **renda mensal**, usada na divisão proporcional. O dono pode renomear, remover membros e excluir o workspace, o que apaga todos os dados dele. Os outros membros podem sair.
+
 ## Scripts
 
 | Script | O que faz |

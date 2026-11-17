@@ -123,10 +123,13 @@ export async function sendMagicLink(
   };
 }
 
-export async function signOut(): Promise<void> {
+// Optional form field "next": after signing out, the login page sends the user there
+export async function signOut(formData?: FormData): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
   const cookieStore = await cookies();
   cookieStore.delete(ACTIVE_WORKSPACE_COOKIE);
-  redirect("/entrar");
+
+  const next = formData ? safeNextPath(formData.get("next"), env.siteUrl) : "/";
+  redirect(next === "/" ? "/entrar" : `/entrar?next=${encodeURIComponent(next)}`);
 }

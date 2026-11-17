@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { HeartHandshakeIcon, UserIcon } from "lucide-react";
+import Link from "next/link";
 import { Suspense } from "react";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,7 +33,14 @@ async function CoupleContent() {
         description={
           hasShared
             ? "Troque para o workspace do casal no seletor acima para ver o acerto."
-            : "Crie um workspace compartilhado e convide seu par. Essa opção chega na próxima fase."
+            : "Crie um workspace compartilhado e convide seu par para dividirem as despesas."
+        }
+        action={
+          hasShared ? undefined : (
+            <Button nativeButton={false} render={<Link href="/workspaces" />}>
+              Criar workspace do casal
+            </Button>
+          )
         }
       />
     );

@@ -1,6 +1,7 @@
 "use client";
 
-import { CheckIcon, ChevronsUpDownIcon, HeartHandshakeIcon, UserIcon } from "lucide-react";
+import { CheckIcon, ChevronsUpDownIcon, HeartHandshakeIcon, Settings2Icon, UserIcon } from "lucide-react";
+import Link from "next/link";
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { switchWorkspace } from "@/features/workspaces/actions";
@@ -70,6 +72,11 @@ export function WorkspaceSwitcher({
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem render={<Link href="/workspaces" />}>
+          <Settings2Icon />
+          Gerenciar workspaces
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

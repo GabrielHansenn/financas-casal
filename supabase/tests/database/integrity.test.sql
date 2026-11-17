@@ -3,7 +3,7 @@
 -- Run with: npm run test:db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(30);
+select plan(31);
 
 -- =====================================================================
 -- Test helpers (rolled back with the transaction)
@@ -11,12 +11,12 @@ select plan(30);
 create schema tests;
 grant usage on schema tests to authenticated, anon;
 
-create function tests.create_user(p_name text) returns uuid language plpgsql as $$
+create function tests.create_user(p_name text, p_confirmed boolean default true) returns uuid language plpgsql as $$
 declare v_id uuid := gen_random_uuid();
 begin
-  insert into auth.users (id, email, aud, role, raw_user_meta_data)
+  insert into auth.users (id, email, aud, role, raw_user_meta_data, email_confirmed_at)
   values (v_id, p_name || '@test.local', 'authenticated', 'authenticated',
-          jsonb_build_object('display_name', p_name));
+          jsonb_build_object('display_name', p_name), case when p_confirmed then now() end);
   perform set_config('test.user_' || p_name, v_id::text, true);
   return v_id;
 end $$;
@@ -88,6 +88,7 @@ select tests.put('alice_personal_cat',
 select tests.login_as('alice');
 select tests.put('casa', public.create_shared_workspace('Casa'));
 select tests.logout();
+select tests.create_user('erin', false);
 insert into public.workspace_members (workspace_id, user_id) values (tests.get('casa'), tests.uid('bob'));
 
 select tests.login_as('alice');
@@ -188,7 +189,13 @@ select throws_ok(
 do $$ begin
   perform set_config('test.token_carol', public.create_workspace_invite(tests.get('casa'), 'carol@test.local'), true);
   perform set_config('test.token_dave',  public.create_workspace_invite(tests.get('casa'), 'dave@test.local'), true);
+  perform set_config('test.token_erin',  public.create_workspace_invite(tests.get('casa'), 'erin@test.local'), true);
 end $$;
+
+-- erin signed up with the invited email but never confirmed it
+select tests.login_as('erin');
+select throws_ok($$ select public.accept_workspace_invite(current_setting('test.token_erin')) $$,
+  '42501', null, 'unconfirmed email cannot accept an invite');
 
 select tests.login_as('carol');
 select lives_ok($$ select public.accept_workspace_invite(current_setting('test.token_carol')) $$,

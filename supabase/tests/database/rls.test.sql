@@ -11,12 +11,12 @@ select plan(43);
 create schema tests;
 grant usage on schema tests to authenticated, anon;
 
-create function tests.create_user(p_name text) returns uuid language plpgsql as $$
+create function tests.create_user(p_name text, p_confirmed boolean default true) returns uuid language plpgsql as $$
 declare v_id uuid := gen_random_uuid();
 begin
-  insert into auth.users (id, email, aud, role, raw_user_meta_data)
+  insert into auth.users (id, email, aud, role, raw_user_meta_data, email_confirmed_at)
   values (v_id, p_name || '@test.local', 'authenticated', 'authenticated',
-          jsonb_build_object('display_name', p_name));
+          jsonb_build_object('display_name', p_name), case when p_confirmed then now() end);
   perform set_config('test.user_' || p_name, v_id::text, true);
   return v_id;
 end $$;
