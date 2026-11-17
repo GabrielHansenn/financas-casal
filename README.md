@@ -108,6 +108,59 @@ O seed cria o workspace pessoal de cada um e o workspace "Casa". "Casa" tem cont
 
 Os scripts rodam no PowerShell. O npm executa scripts via `cmd.exe` no Windows, então o redirecionamento em `db:types` gera UTF-8 corretamente.
 
+## Produção (Supabase + Vercel)
+
+O banco de produção é um projeto em supabase.com. O app roda na Vercel, que faz deploy automático a cada `git push` na `main`. **O seed nunca vai para produção**: lá só ficam dados reais.
+
+### Banco
+
+```powershell
+npx supabase login                               # uma vez por máquina (abre o navegador)
+npx supabase link --project-ref <PROJECT_REF>    # uma vez; pede a senha do banco
+npm run db:status:remote                         # compara migrations locais x produção
+npm run db:push                                  # aplica as migrations pendentes em produção (--remote)
+npm run db:backup                                # dump de schema e dados em ./backups (fora do git)
+```
+
+O `<PROJECT_REF>` fica na URL do painel: `supabase.com/dashboard/project/<PROJECT_REF>`.
+
+Fluxo para mudar o schema:
+1. Crie a migration e teste localmente (`npm run db:reset`, `npm run test:db`).
+2. Faça o commit.
+3. Rode `npm run db:push` **antes** de dar push no código que depende da mudança.
+
+### Configuração no painel do Supabase
+
+| Onde | O quê |
+|---|---|
+| Authentication → URL Configuration | **Site URL**: a URL da Vercel (ex.: `https://financas-casal.vercel.app`). **Redirect URLs**: `https://financas-casal.vercel.app/**` |
+| Authentication → Sign In / Providers → Email | **Confirm email** ligado; tamanho mínimo de senha: 8 |
+| Authentication → Emails → SMTP Settings | SMTP próprio (ver abaixo) |
+| Authentication → Emails → Templates | Cole `supabase/templates/magic_link.html` em *Magic Link* e `confirmation.html` em *Confirm signup*, com os assuntos de `config.toml` |
+
+### Email (Gmail SMTP)
+
+1. Ative a verificação em duas etapas na conta Google e gere uma **senha de app** em https://myaccount.google.com/apppasswords.
+2. No Supabase (SMTP Settings): host `smtp.gmail.com`, porta `465`, usuário = seu Gmail, senha = a senha de app, remetente = seu Gmail, nome "Finanças Casal".
+3. As mesmas credenciais vão nas variáveis `SMTP_*` da Vercel. O app usa essas variáveis para enviar os convites.
+
+O Gmail permite cerca de 500 emails por dia.
+
+### Variáveis de ambiente na Vercel
+
+Cadastre em *Settings → Environment Variables* (ambientes Production e Preview):
+
+| Variável | Valor |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://<PROJECT_REF>.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Project Settings → API Keys → **Publishable key** (`sb_publishable_...`) |
+| `NEXT_PUBLIC_SITE_URL` | a URL da Vercel, sem barra no final |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` | `smtp.gmail.com` / `465` / `true` |
+| `SMTP_USER` / `SMTP_PASSWORD` | seu Gmail / a senha de app |
+| `SMTP_FROM` | `Finanças Casal <seu@gmail.com>` |
+
+Variáveis `NEXT_PUBLIC_*` são embutidas no build. Depois de alterar alguma, faça **Redeploy**.
+
 ## Convenções
 
 - Interface em pt-BR; código, comentários, tabelas e colunas em inglês.

@@ -2,6 +2,9 @@
   "name": "financas-casal",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "next dev",
     "dev:https": "next dev --experimental-https",
@@ -18,6 +21,9 @@
     "db:migrate": "supabase migration up",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > src/types/database.ts",
+    "db:push": "supabase db push --remote",
+    "db:status:remote": "supabase migration list --remote",
+    "db:backup": "node scripts/db-backup.mjs",
     "check": "npm run lint && npm run typecheck && npm run test"
   },
   "dependencies": {
