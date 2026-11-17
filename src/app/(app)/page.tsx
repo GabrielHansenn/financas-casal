@@ -37,12 +37,13 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
 
 async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
   const params = await searchParams;
-  // Read the clock only after runtime data (required by cacheComponents)
+  // Session first: it awaits connection(), so reading the clock below happens at request time
+  // (a link prefetch can resolve searchParams early, which is not enough for new Date())
+  const { user, active } = await getWorkspaceContext();
   const thisMonth = currentMonth();
   const raw = Array.isArray(params.month) ? params.month[0] : params.month;
   const month = raw && isISOMonth(raw) ? raw : thisMonth;
 
-  const { user, active } = await getWorkspaceContext();
   const [{ summary, previous }, accounts, goals] = await Promise.all([
     getMonthDashboard(active.id, month),
     getAccountsWithBalances(active.id),

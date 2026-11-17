@@ -1,6 +1,7 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { env } from "@/lib/env";
 import type { Database } from "@/types/database";
 
@@ -8,6 +9,11 @@ import type { Database } from "@/types/database";
 // Reads the session from cookies; it must run inside a <Suspense> boundary when rendering
 // (cookies() is a runtime API under Cache Components).
 export async function createClient() {
+  // Supabase data is per user and must never be prerendered. With partialPrefetching the
+  // App Shell render can read cookies, and supabase-js then calls Date.now() (token expiry
+  // check), which Next rejects as an unstable value. connection() stops prerendering here so
+  // everything below runs only at request time.
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient<Database>(env.supabaseUrl, env.supabasePublishableKey, {

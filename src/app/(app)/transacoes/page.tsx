@@ -37,10 +37,10 @@ export default function TransactionsPage({ searchParams }: PageProps<"/transacoe
 
 async function TransactionsContent({ searchParams }: { searchParams: PageProps<"/transacoes">["searchParams"] }) {
   const params = await searchParams;
-  // Read the clock only after runtime data (required by cacheComponents)
+  // Session first: it awaits connection(), so reading the clock below happens at request time
+  const { active } = await getWorkspaceContext();
   const month = currentMonth();
   const filters = parseTransactionFilters(params, month);
-  const { active } = await getWorkspaceContext();
 
   const [data, options, { items, truncated }] = await Promise.all([
     getQuickAddData(),
