@@ -20,7 +20,7 @@
     "db:status": "supabase status",
     "db:migrate": "supabase migration up",
     "db:reset": "supabase db reset",
-    "db:types": "supabase gen types typescript --local > src/types/database.ts",
+    "db:types": "node scripts/db-types.mjs",
     "db:push": "supabase db push --remote",
     "db:status:remote": "supabase migration list --remote",
     "db:backup": "node scripts/db-backup.mjs",

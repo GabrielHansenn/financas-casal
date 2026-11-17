@@ -115,6 +115,13 @@ O seed cria o workspace pessoal de cada um e o workspace "Casa". "Casa" tem cont
 - Saldo atual por conta (view `account_balances`, todos os lançamentos), com link para a lista filtrada pela conta.
 - Os totais vêm da RPC `get_period_summary` (security invoker, a RLS se aplica). A agregação fica em `src/features/dashboard/summary.ts`, com testes.
 
+## Acerto do casal
+
+- Em **Casal** (`/casal`, só em workspace compartilhado): "Bruno deve R$ X para você", o botão **Registrar acerto** (já preenchido com o valor em aberto, aceita acerto parcial) e o histórico, com opção de excluir.
+- O saldo considera **todas** as despesas divididas, de todos os meses: cada parte paga por outra pessoa vira dívida com quem pagou. Os acertos abatem essa dívida. A RPC `get_settlement_ledger` devolve as linhas separadas por tipo (`split` / `settlement`), e `src/lib/settlement.ts` calcula o saldo líquido e as transferências sugeridas (com 3+ pessoas, simplifica as dívidas). Tudo em centavos, com testes.
+- Um acerto **não é** receita nem despesa e não altera o saldo das contas: é um registro de que o dinheiro foi repassado entre vocês.
+- Se alguém sai do workspace com saldo em aberto, o saldo continua aparecendo, mas não dá para registrar um acerto com essa pessoa (o banco exige que os dois sejam membros).
+
 ## Scripts
 
 | Script | O que faz |
@@ -127,7 +134,7 @@ O seed cria o workspace pessoal de cada um e o workspace "Casa". "Casa" tem cont
 | `npm run check` | lint + typecheck + testes |
 | `npm run build` | build de produção |
 
-Os scripts rodam no PowerShell. O npm executa scripts via `cmd.exe` no Windows, então o redirecionamento em `db:types` gera UTF-8 corretamente.
+Os scripts rodam no PowerShell. O `db:types` (`scripts/db-types.mjs`) só grava `src/types/database.ts` se a geração der certo: com o banco local parado, o arquivo fica intacto.
 
 ## Produção (Supabase + Vercel)
 

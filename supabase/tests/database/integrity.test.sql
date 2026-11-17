@@ -3,7 +3,7 @@
 -- Run with: npm run test:db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(31);
+select plan(32);
 
 -- =====================================================================
 -- Test helpers (rolled back with the transaction)
@@ -260,11 +260,16 @@ insert into public.settlements (workspace_id, from_user_id, to_user_id, amount_c
 values (tests.get('casa'), tests.uid('bob'), tests.uid('alice'), 2000, current_date);
 
 select results_eq(
-  $$ select creditor_id, debtor_id, amount_cents from public.get_settlement_ledger(tests.get('casa'))
+  $$ select kind, creditor_id, debtor_id, amount_cents from public.get_settlement_ledger(tests.get('casa'))
      order by amount_cents desc $$,
-  $$ values (tests.uid('alice'), tests.uid('bob'), 10000::bigint),
-            (tests.uid('bob'), tests.uid('alice'), 2000::bigint) $$,
+  $$ values ('split', tests.uid('alice'), tests.uid('bob'), 10000::bigint),
+            ('settlement', tests.uid('bob'), tests.uid('alice'), 2000::bigint) $$,
   'ledger: bob owes alice his split; his settlement makes him creditor of the paid amount');
+
+select throws_ok(
+  $$ insert into public.settlements (workspace_id, from_user_id, to_user_id, amount_cents, date)
+     values (tests.get('casa'), tests.uid('bob'), tests.uid('bob'), 100, current_date) $$,
+  '23514', null, 'settlement to oneself is rejected');
 
 select tests.logout();
 select * from finish();

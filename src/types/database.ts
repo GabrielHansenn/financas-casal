@@ -459,7 +459,7 @@ isOneToOne: false
                            },
 "get_settlement_ledger":
 { Args: { "p_workspace_id": string }; Returns: {
-              "amount_cents": number,"creditor_id": string,"debtor_id": string
+              "amount_cents": number,"creditor_id": string,"debtor_id": string,"kind": string
             }[]
                            },
 "is_workspace_member":
