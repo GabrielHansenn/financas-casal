@@ -140,6 +140,15 @@ O seed cria o workspace pessoal de cada um e o workspace "Casa". "Casa" tem cont
 - **O saldo nunca fica negativo:** o trigger `assert_goal_balance` (migration `20261120120000`) trava a linha da meta e recusa com 23514 qualquer inserção, alteração ou exclusão que deixe a soma abaixo de zero. Isso vale mesmo com os dois resgatando ao mesmo tempo, e também impede excluir um aporte que já foi resgatado.
 - Arquivar tira a meta da lista principal e bloqueia movimentações. Excluir apaga a meta e o histórico (pede para digitar o nome quando há movimentações).
 
+## Quadro dos Sonhos
+
+- Aba **Sonhos** (`/sonhos`): mural de sonhos em mosaico (2 colunas no celular, 3 no desktop), com abas *Sonhando e planejando* e *Realizados* (álbum de memórias) e filtros por categoria, prazo e "de quem" na URL. Detalhe em `/sonhos/<id>`.
+- **Ciclo:** `dreaming` → `planning` (virou meta, via RPC `convert_dream_to_goal`) → `achieved`. Excluir a meta vinculada devolve o sonho para `dreaming` (FK `on delete set null` + trigger). Um sonho tem no máximo uma meta, e uma meta pertence a no máximo um sonho.
+- **De quem:** `owner_user_id` (`null` = "Nosso"). A tela mostra "Meu", "De Bruno" ou "Nosso" conforme quem está vendo. No workspace pessoal, o dono é sempre o usuário.
+- **Ordem manual:** botão *Organizar* (grade uniforme com arrastar e soltar via dnd-kit, segurar no celular) salva `position` com a RPC `reorder_dreams`. Só aparece sem filtros, na aba principal.
+- **Imagens:** bucket **privado** `dream-images`, caminho `{workspace_id}/{dream_id}/{cover|achieved}-{uuid}.{webp|jpg}`. O navegador valida (JPG/PNG/WEBP, até 5 MB), redimensiona para no máximo 1600 px e comprime em WEBP (JPEG no Safari) antes de enviar direto ao Storage. As policies do Storage exigem que o 1º segmento seja um workspace do usuário e o 2º um sonho desse workspace. As imagens aparecem por signed URL (1 hora), em `<img>` comum: o otimizador do Next guardaria cópias fora das regras do bucket.
+- Excluir um sonho apaga as imagens antes da linha; excluir um workspace apaga a pasta dele no bucket antes (o banco não apaga arquivos do Storage).
+
 ## Scripts
 
 | Script | O que faz |

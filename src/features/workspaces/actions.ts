@@ -10,6 +10,7 @@ import { escapeHtml, sendEmail } from "@/lib/email";
 import { env } from "@/lib/env";
 import { parseBRL } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
+import { removeWorkspaceDreamImages } from "@/features/dreams/storage";
 import { ACTIVE_WORKSPACE_COOKIE } from "./active-workspace";
 import { INVITE_TOKEN_PATTERN } from "./invite-token";
 
@@ -341,8 +342,20 @@ export async function deleteWorkspace(id: string): Promise<ActionResult> {
   const parsed = workspaceId.safeParse(id);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
 
-  await getCurrentUser();
+  const user = await getCurrentUser();
   const supabase = await createClient();
+  // Storage files are not removed by the database cascade (and can't be deleted with SQL):
+  // remove the dream images first, while the user is still a member. Only when the delete
+  // below will be allowed (owner of a shared workspace), so a rejected request removes nothing.
+  const { data: me } = await supabase
+    .from("workspace_members")
+    .select("role, workspace:workspaces(type)")
+    .eq("workspace_id", parsed.data)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (me?.role === "owner" && me.workspace?.type === "shared") {
+    await removeWorkspaceDreamImages(supabase, parsed.data);
+  }
   // RLS: only owners, only shared workspaces. Cascades to all data of the workspace.
   const { data, error } = await supabase
     .from("workspaces")

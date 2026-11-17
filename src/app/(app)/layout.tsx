@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import { Brand } from "@/components/brand";
-import { BottomNav } from "@/components/layout/bottom-nav";
+import { BottomNav, BottomNavView } from "@/components/layout/bottom-nav";
 import { SidebarUserSlot, WorkspaceSwitcherSlot } from "@/components/layout/shell-slots";
-import { SidebarNav } from "@/components/layout/sidebar-nav";
+import { SidebarNav, SidebarNavView } from "@/components/layout/sidebar-nav";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecurrenceRunner } from "@/features/recurrences/components/recurrence-runner";
 
@@ -17,7 +17,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Suspense fallback={<Skeleton className="h-10 w-full" />}>
           <WorkspaceSwitcherSlot className="w-full" />
         </Suspense>
-        <SidebarNav />
+        {/* usePathname() is URL data: on dynamic routes (e.g. /sonhos/[id]) it is only known at
+            request time, so the highlighted nav streams in; the fallback has no active item */}
+        <Suspense fallback={<SidebarNavView pathname={null} />}>
+          <SidebarNav />
+        </Suspense>
         <div className="mt-auto">
           <Suspense fallback={<Skeleton className="h-12 w-full" />}>
             <SidebarUserSlot />
@@ -39,7 +43,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
-      <BottomNav />
+      <Suspense fallback={<BottomNavView pathname={null} />}>
+        <BottomNav />
+      </Suspense>
       {/* Generates due recurring transactions once when the app opens */}
       <RecurrenceRunner />
     </div>

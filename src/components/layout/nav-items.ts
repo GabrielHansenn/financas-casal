@@ -5,6 +5,7 @@ import {
   HouseIcon,
   LandmarkIcon,
   ReceiptTextIcon,
+  SparklesIcon,
   TagsIcon,
   TargetIcon,
   UsersIcon,
@@ -12,7 +13,7 @@ import {
 } from "lucide-react";
 
 export type NavItem = {
-  href: "/" | "/transacoes" | "/casal" | "/mais";
+  href: "/" | "/transacoes" | "/sonhos" | "/casal" | "/mais";
   label: string;
   icon: LucideIcon;
 };
@@ -21,6 +22,7 @@ export type NavItem = {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Início", icon: HouseIcon },
   { href: "/transacoes", label: "Transações", icon: ReceiptTextIcon },
+  { href: "/sonhos", label: "Sonhos", icon: SparklesIcon },
   { href: "/casal", label: "Casal", icon: HeartHandshakeIcon },
   { href: "/mais", label: "Mais", icon: EllipsisIcon },
 ];
@@ -40,12 +42,13 @@ export const MANAGE_ITEMS: ManageItem[] = [
   { href: "/workspaces", label: "Workspaces e convites", icon: UsersIcon },
 ];
 
-export function isActivePath(pathname: string, href: string): boolean {
+export function isActivePath(pathname: string | null, href: string): boolean {
+  if (pathname === null) return false;
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
 /** On mobile the "Gerenciar" pages are reached through Mais, so Mais stays highlighted there. */
-export function isActiveTab(pathname: string, href: NavItem["href"]): boolean {
+export function isActiveTab(pathname: string | null, href: NavItem["href"]): boolean {
   if (href === "/mais" && MANAGE_ITEMS.some((item) => isActivePath(pathname, item.href))) return true;
   return isActivePath(pathname, href);
 }

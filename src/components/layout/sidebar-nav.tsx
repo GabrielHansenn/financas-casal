@@ -24,8 +24,11 @@ function SidebarLink({ href, label, icon: Icon, active }: { href: string; label:
 
 // Desktop sidebar: primary navigation plus the "Gerenciar" shortcuts (on mobile they live in Mais)
 export function SidebarNav() {
-  const pathname = usePathname();
+  return <SidebarNavView pathname={usePathname()} />;
+}
 
+/** Without a pathname (Suspense fallback while the URL is unknown) no item is highlighted. */
+export function SidebarNavView({ pathname }: { pathname: string | null }) {
   return (
     <nav aria-label="Navegação principal" className="grid gap-6">
       <ul className="grid gap-1">
