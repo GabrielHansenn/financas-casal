@@ -17,7 +17,7 @@ export default function GlobalError({ retry }: { error: unknown; retry: () => vo
           padding: "1.5rem",
         }}
       >
-        <title>Erro · Finanças Casal</title>
+        <title>Erro · Adois</title>
         <div style={{ display: "grid", gap: "0.75rem", maxWidth: "22rem" }}>
           <h1 style={{ fontSize: "1.25rem", margin: 0 }}>Algo deu errado</h1>
           <p style={{ margin: 0, opacity: 0.75 }}>

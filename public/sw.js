@@ -1,11 +1,11 @@
-// Service worker for Finanças Casal (hand-written, no build step).
+// Service worker for Adois (hand-written, no build step).
 //
 // Privacy rule: authenticated pages and data are NEVER cached. Only immutable static assets
 // (hashed /_next/static files), icons and the public /offline page are stored, so nothing
 // about the user's finances survives a logout or is visible to another account on the device.
 //
 // Bump VERSION to drop old caches on the next deploy.
-const VERSION = "v1";
+const VERSION = "v2"; // v2: app renamed to Adois (refreshes the cached manifest)
 const STATIC_CACHE = `static-${VERSION}`;
 const OFFLINE_URL = "/offline";
 const PRECACHE = [OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png", "/manifest.webmanifest"];

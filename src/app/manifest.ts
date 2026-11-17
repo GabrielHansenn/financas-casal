@@ -3,9 +3,9 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Finanças Casal",
-    short_name: "Finanças",
-    description: "Organização financeira pessoal e do casal",
+    name: "Adois",
+    short_name: "Adois",
+    description: "Finanças a dois, sem complicação: despesas, divisão do casal, acertos e metas.",
     lang: "pt-BR",
     start_url: "/",
     scope: "/",

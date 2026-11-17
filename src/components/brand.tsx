@@ -7,7 +7,7 @@ export function Brand({ className }: { className?: string }) {
       <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
         <WalletIcon className="size-4" />
       </span>
-      Finanças Casal
+      Adois
     </span>
   );
 }

@@ -1,6 +1,8 @@
-# Finanças Casal
+# Adois
 
-PWA de organização financeira pessoal e do casal. Next.js 16 (App Router), Supabase (Postgres + Auth + RLS), Tailwind + shadcn/ui.
+**Finanças a dois, sem complicação.** PWA de organização financeira pessoal e do casal: lançamento rápido, divisão de despesas, acerto de contas, recorrências e metas. Next.js 16 (App Router), Supabase (Postgres + Auth + RLS), Tailwind + shadcn/ui.
+
+> O nome vem de "finanças a dois". Identificadores técnicos usam `adois`. A pasta, o repositório, o `project_id` do Supabase local (`financas-casal`) e os projetos na Vercel/Supabase mantêm o nome antigo: trocar o `project_id` recriaria os containers e volumes do banco local.
 
 ## Pré-requisitos
 
@@ -177,7 +179,7 @@ Fluxo para mudar o schema:
 
 | Onde | O quê |
 |---|---|
-| Authentication → URL Configuration | **Site URL**: a URL da Vercel (ex.: `https://financas-casal.vercel.app`). **Redirect URLs**: `https://financas-casal.vercel.app/**` |
+| Authentication → URL Configuration | **Site URL**: a URL da Vercel (ex.: `https://seu-app.vercel.app`). **Redirect URLs**: `https://seu-app.vercel.app/**` |
 | Authentication → Sign In / Providers → Email | **Confirm email** ligado; tamanho mínimo de senha: 8 |
 | Authentication → Emails → SMTP Settings | SMTP próprio (ver abaixo) |
 | Authentication → Emails → Templates | Cole `supabase/templates/magic_link.html` em *Magic Link* e `confirmation.html` em *Confirm signup*, com os assuntos de `config.toml` |
@@ -185,7 +187,7 @@ Fluxo para mudar o schema:
 ### Email (Gmail SMTP)
 
 1. Ative a verificação em duas etapas na conta Google e gere uma **senha de app** em https://myaccount.google.com/apppasswords.
-2. No Supabase (SMTP Settings): host `smtp.gmail.com`, porta `465`, usuário = seu Gmail, senha = a senha de app, remetente = seu Gmail, nome "Finanças Casal".
+2. No Supabase (SMTP Settings): host `smtp.gmail.com`, porta `465`, usuário = seu Gmail, senha = a senha de app, remetente = seu Gmail, nome "Adois".
 3. As mesmas credenciais vão nas variáveis `SMTP_*` da Vercel. O app usa essas variáveis para enviar os convites.
 
 O Gmail permite cerca de 500 emails por dia.
@@ -201,7 +203,7 @@ Cadastre em *Settings → Environment Variables* (ambientes Production e Preview
 | `NEXT_PUBLIC_SITE_URL` | a URL da Vercel, sem barra no final |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` | `smtp.gmail.com` / `465` / `true` |
 | `SMTP_USER` / `SMTP_PASSWORD` | seu Gmail / a senha de app |
-| `SMTP_FROM` | `Finanças Casal <seu@gmail.com>` |
+| `SMTP_FROM` | `Adois <seu@gmail.com>` |
 
 Variáveis `NEXT_PUBLIC_*` são embutidas no build. Depois de alterar alguma, faça **Redeploy**.
 

@@ -41,7 +41,7 @@ export function InviteForm({ workspaceId, workspaceName }: { workspaceId: string
 
   const share = async () => {
     try {
-      await navigator.share({ title: "Convite – Finanças Casal", text: shareText });
+      await navigator.share({ title: "Convite – Adois", text: shareText });
     } catch {
       // User cancelled the share sheet
     }

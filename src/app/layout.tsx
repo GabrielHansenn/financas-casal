@@ -18,14 +18,14 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Finanças Casal",
-    template: "%s · Finanças Casal",
+    default: "Adois",
+    template: "%s · Adois",
   },
-  description: "Organização financeira pessoal e do casal",
-  applicationName: "Finanças Casal",
+  description: "Finanças a dois, sem complicação.",
+  applicationName: "Adois",
   appleWebApp: {
     capable: true,
-    title: "Finanças",
+    title: "Adois",
     statusBarStyle: "default",
   },
 };

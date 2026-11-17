@@ -261,11 +261,11 @@ otp_expiry = 3600
 # Templates use token_hash links to /auth/confirm (required for SSR / PKCE with @supabase/ssr).
 # The same HTML must be pasted into the hosted project (Auth > Email Templates) in production.
 [auth.email.template.magic_link]
-subject = "Seu link de acesso"
+subject = "Seu link de acesso ao Adois"
 content_path = "./supabase/templates/magic_link.html"
 
 [auth.email.template.confirmation]
-subject = "Confirme seu email"
+subject = "Confirme seu email no Adois"
 content_path = "./supabase/templates/confirmation.html"
 
 # Uncomment to customize notification email template

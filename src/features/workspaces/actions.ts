@@ -156,14 +156,14 @@ export async function inviteMember(_prev: InviteState, formData: FormData): Prom
 
   const emailSent = await sendEmail({
     to: parsed.data.email,
-    subject: `${inviterName} convidou você para "${workspaceLabel}"`,
+    subject: `${inviterName} convidou você para "${workspaceLabel}" no Adois`,
     text:
-      `${inviterName} convidou você para organizar as finanças juntos no workspace "${workspaceLabel}" do Finanças Casal.\n\n` +
+      `${inviterName} convidou você para organizar as finanças juntos no workspace "${workspaceLabel}" no Adois.\n\n` +
       `Aceite o convite: ${link}\n\nO convite vale por 7 dias.`,
     html: `
       <h2>Você foi convidado(a)!</h2>
       <p><strong>${escapeHtml(inviterName)}</strong> convidou você para organizar as finanças juntos no workspace
-      <strong>${escapeHtml(workspaceLabel)}</strong> do Finanças Casal.</p>
+      <strong>${escapeHtml(workspaceLabel)}</strong> no Adois.</p>
       <p><a href="${escapeHtml(link)}"
         style="display:inline-block;padding:12px 20px;background:#171717;color:#ffffff;border-radius:8px;text-decoration:none">
         Aceitar convite</a></p>
