@@ -85,6 +85,15 @@ O seed cria o workspace pessoal de cada um e o workspace "Casa". "Casa" tem cont
 - `rls.test.sql`: um usuário de fora não vê nem altera nada de um workspace alheio; um membro não escala privilégios; anon não lê nada.
 - `integrity.test.sql`: FKs entre workspaces, regras de split, convites (email errado, reuso, expiração), recorrência duplicada, saldos e ledger do acerto.
 
+## Autenticação
+
+- Login com email e senha ou com **link mágico**. Localmente, os emails chegam no Mailpit (http://127.0.0.1:54324).
+- Os links dos emails apontam para `/auth/confirm`, que troca o `token_hash` por uma sessão. Os templates ficam em `supabase/templates/` e, em produção, precisam ser colados em *Auth → Email Templates* no painel do Supabase.
+- `src/proxy.ts` renova a sessão a cada request e redireciona quem não está logado para `/entrar?next=...`. O `next` é validado para nunca sair do site.
+- A checagem que vale de fato fica no servidor (`getCurrentUser` em `src/lib/auth.ts`) e no banco (RLS).
+- O workspace ativo fica no cookie `active_workspace_id` e é sempre revalidado contra as associações do usuário. Se o cookie for inválido, o app usa o workspace pessoal.
+- Localmente, a confirmação de email está desligada (`enable_confirmations = false`). Em produção, ligue no painel.
+
 ## Scripts
 
 | Script | O que faz |

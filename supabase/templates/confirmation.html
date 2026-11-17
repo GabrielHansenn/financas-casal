@@ -1,7 +1,7 @@
 <h2>Confirme seu email</h2>
 <p>Bem-vindo(a) ao Finanças Casal! Toque no botão abaixo para confirmar seu cadastro:</p>
 <p>
-  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/"
+  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}"
      style="display:inline-block;padding:12px 20px;background:#171717;color:#ffffff;border-radius:8px;text-decoration:none">
     Confirmar email
   </a>
