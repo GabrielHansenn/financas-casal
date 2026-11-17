@@ -1,11 +1,10 @@
 "use client";
 
-import { ChevronLeftIcon, ChevronRightIcon, XIcon } from "lucide-react";
-import Link from "next/link";
+import { XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { MonthNav } from "@/components/month-nav";
 import { Button } from "@/components/ui/button";
-import { addMonths, formatMonthLabel } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { transactionsHref, type TransactionFilters as Filters } from "../list";
 import type { ListOptions } from "../types";
@@ -35,38 +34,7 @@ export function TransactionFilters({
 
   return (
     <div className={cn("mb-4 grid gap-3 transition-opacity", pending && "opacity-60")} aria-busy={pending}>
-      <div className="flex items-center justify-between gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          nativeButton={false}
-          render={<Link href={href({ month: addMonths(filters.month, -1) })} scroll={false} />}
-          aria-label="Mês anterior"
-        >
-          <ChevronLeftIcon />
-        </Button>
-        <div className="grid text-center">
-          <span className="font-medium capitalize">{formatMonthLabel(filters.month)}</span>
-          {filters.month !== currentMonth ? (
-            <Link
-              href={href({ month: currentMonth })}
-              scroll={false}
-              className="text-xs text-primary underline-offset-4 hover:underline"
-            >
-              Voltar para o mês atual
-            </Link>
-          ) : null}
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          nativeButton={false}
-          render={<Link href={href({ month: addMonths(filters.month, 1) })} scroll={false} />}
-          aria-label="Próximo mês"
-        >
-          <ChevronRightIcon />
-        </Button>
-      </div>
+      <MonthNav month={filters.month} currentMonth={currentMonth} hrefFor={(month) => href({ month })} />
 
       <div className="flex gap-2">
         <select

@@ -108,6 +108,13 @@ O seed cria o workspace pessoal de cada um e o workspace "Casa". "Casa" tem cont
 - Tocar num lançamento abre a edição (mesmo formulário) e o botão de excluir. Transferências não contam em receitas/despesas; com filtro de conta, aparecem como entrada (+) ou saída (−) daquela conta.
 - Contas e categorias arquivadas somem do formulário de novos lançamentos, mas os lançamentos antigos continuam mostrando o nome e podem ser editados.
 
+## Início (dashboard)
+
+- Mês navegável (`/?month=AAAA-MM`): saldo do mês (receitas − despesas, sem transferências), barras de receitas × despesas e comparação das despesas com o mês anterior.
+- Rosca de despesas por categoria (Recharts), com a cor de cada categoria. Acima de 6 categorias, as menores viram "Demais categorias". A lista ao lado mostra nome, % e valor, então a leitura não depende só da cor, e cada linha abre a lista filtrada.
+- Saldo atual por conta (view `account_balances`, todos os lançamentos), com link para a lista filtrada pela conta.
+- Os totais vêm da RPC `get_period_summary` (security invoker, a RLS se aplica). A agregação fica em `src/features/dashboard/summary.ts`, com testes.
+
 ## Scripts
 
 | Script | O que faz |
