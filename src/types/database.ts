@@ -69,6 +69,76 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"dream_reactions": {
+                  Row: {
+                    "created_at": string,"dream_id": string,"type": Database["public"]['Enums']["dream_reaction_type"],"user_id": string,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"dream_id": string,"type": Database["public"]['Enums']["dream_reaction_type"],"user_id"?: string,"workspace_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"dream_id"?: string,"type"?: Database["public"]['Enums']["dream_reaction_type"],"user_id"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "dream_reactions_dream_id_workspace_id_fkey"
+      columns: ["dream_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "dreams"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "dream_reactions_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"dreams": {
+                  Row: {
+                    "achieved_at": string | null,"achieved_image_path": string | null,"category": Database["public"]['Enums']["dream_category"],"cover_image_path": string | null,"created_at": string,"created_by": string,"estimated_cost_cents": number | null,"goal_id": string | null,"horizon": Database["public"]['Enums']["dream_horizon"],"id": string,"owner_user_id": string | null,"position": number,"status": Database["public"]['Enums']["dream_status"],"title": string,"updated_at": string,"why": string | null,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "achieved_at"?: string | null,"achieved_image_path"?: string | null,"category"?: Database["public"]['Enums']["dream_category"],"cover_image_path"?: string | null,"created_at"?: string,"created_by"?: string,"estimated_cost_cents"?: number | null,"goal_id"?: string | null,"horizon"?: Database["public"]['Enums']["dream_horizon"],"id"?: string,"owner_user_id"?: string | null,"position"?: number,"status"?: Database["public"]['Enums']["dream_status"],"title": string,"updated_at"?: string,"why"?: string | null,"workspace_id": string
+                  }
+                  Update: {
+                    "achieved_at"?: string | null,"achieved_image_path"?: string | null,"category"?: Database["public"]['Enums']["dream_category"],"cover_image_path"?: string | null,"created_at"?: string,"created_by"?: string,"estimated_cost_cents"?: number | null,"goal_id"?: string | null,"horizon"?: Database["public"]['Enums']["dream_horizon"],"id"?: string,"owner_user_id"?: string | null,"position"?: number,"status"?: Database["public"]['Enums']["dream_status"],"title"?: string,"updated_at"?: string,"why"?: string | null,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "dreams_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "dreams_goal_id_workspace_id_fkey"
+      columns: ["goal_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "goal_progress"
+      referencedColumns: ["goal_id","workspace_id"]
+    },{
+      foreignKeyName: "dreams_goal_id_workspace_id_fkey"
+      columns: ["goal_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "goals"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "dreams_owner_user_id_fkey"
+      columns: ["owner_user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "dreams_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"goal_contributions": {
                   Row: {
                     "amount_cents": number,"created_at": string,"created_by": string,"date": string,"goal_id": string,"id": string,"note": string | null,"workspace_id": string
@@ -441,6 +511,12 @@ isOneToOne: false
 "assert_transaction_splits":
 { Args: { "p_transaction_id": string }; Returns: undefined
                            },
+"can_access_dream_object":
+{ Args: { "p_name": string,"p_require_dream": boolean }; Returns: boolean
+                           },
+"convert_dream_to_goal":
+{ Args: { "p_deadline"?: string,"p_dream_id": string,"p_name": string,"p_target_cents": number }; Returns: string
+                           },
 "create_shared_workspace":
 { Args: { "p_name": string }; Returns: string
                            },
@@ -462,11 +538,17 @@ isOneToOne: false
               "amount_cents": number,"creditor_id": string,"debtor_id": string,"kind": string
             }[]
                            },
+"is_shared_workspace":
+{ Args: { "p_workspace_id": string }; Returns: boolean
+                           },
 "is_workspace_member":
 { Args: { "p_workspace_id": string }; Returns: boolean
                            },
 "is_workspace_owner":
 { Args: { "p_workspace_id": string }; Returns: boolean
+                           },
+"reorder_dreams":
+{ Args: { "p_ids": (string)[],"p_workspace_id": string }; Returns: undefined
                            },
 "save_transaction":
 { Args: { "p_account_id": string,"p_amount_cents": number,"p_category_id"?: string,"p_date": string,"p_description"?: string,"p_id"?: string,"p_paid_by"?: string,"p_recurring_id"?: string,"p_source"?: Database["public"]['Enums']["transaction_source"],"p_split_type"?: Database["public"]['Enums']["split_type"],"p_splits"?: Json,"p_to_account_id"?: string,"p_type": Database["public"]['Enums']["transaction_type"],"p_workspace_id": string }; Returns: string
@@ -482,7 +564,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "account_type": "checking"|"savings"|"credit_card"|"cash","category_type": "income"|"expense","invite_status": "pending"|"accepted"|"revoked","member_role": "owner"|"member","recurrence_frequency": "weekly"|"monthly"|"yearly","split_type": "none"|"equal"|"proportional"|"custom","transaction_source": "manual"|"recurring"|"import","transaction_type": "income"|"expense"|"transfer","workspace_type": "personal"|"shared"
+            "account_type": "checking"|"savings"|"credit_card"|"cash","category_type": "income"|"expense","dream_category": "travel"|"home"|"vehicle"|"experience"|"career"|"pet"|"wedding"|"education"|"other","dream_horizon": "short"|"medium"|"long"|"someday","dream_reaction_type": "love"|"me_too","dream_status": "dreaming"|"planning"|"achieved","invite_status": "pending"|"accepted"|"revoked","member_role": "owner"|"member","recurrence_frequency": "weekly"|"monthly"|"yearly","split_type": "none"|"equal"|"proportional"|"custom","transaction_source": "manual"|"recurring"|"import","transaction_type": "income"|"expense"|"transfer","workspace_type": "personal"|"shared"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -602,7 +684,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "account_type": ["checking", "savings", "credit_card", "cash"],"category_type": ["income", "expense"],"invite_status": ["pending", "accepted", "revoked"],"member_role": ["owner", "member"],"recurrence_frequency": ["weekly", "monthly", "yearly"],"split_type": ["none", "equal", "proportional", "custom"],"transaction_source": ["manual", "recurring", "import"],"transaction_type": ["income", "expense", "transfer"],"workspace_type": ["personal", "shared"]
+            "account_type": ["checking", "savings", "credit_card", "cash"],"category_type": ["income", "expense"],"dream_category": ["travel", "home", "vehicle", "experience", "career", "pet", "wedding", "education", "other"],"dream_horizon": ["short", "medium", "long", "someday"],"dream_reaction_type": ["love", "me_too"],"dream_status": ["dreaming", "planning", "achieved"],"invite_status": ["pending", "accepted", "revoked"],"member_role": ["owner", "member"],"recurrence_frequency": ["weekly", "monthly", "yearly"],"split_type": ["none", "equal", "proportional", "custom"],"transaction_source": ["manual", "recurring", "import"],"transaction_type": ["income", "expense", "transfer"],"workspace_type": ["personal", "shared"]
           }
         }
 } as const

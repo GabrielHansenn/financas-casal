@@ -25,6 +25,7 @@ declare
   v_bruno_acc   uuid;
   v_rent_rec    uuid;
   v_goal        uuid;
+  v_dream       uuid;
   v_tx          uuid;
   v_other       uuid;
   v_other_share bigint;
@@ -173,5 +174,43 @@ begin
   insert into public.goal_contributions (goal_id, workspace_id, amount_cents, date, note, created_by) values
     (v_goal, v_casa, 50000, v_m1 + 9, 'Primeiro aporte', v_ana),
     (v_goal, v_casa, 30000, least(v_m0 + 9, current_date), null, v_bruno);
+
+  -- -------------------------------------------------------------------
+  -- Dreams board (no images: covers are optional). Positions define the manual order.
+  -- -------------------------------------------------------------------
+  -- Planning: linked to the "Viagem de férias" goal above
+  insert into public.dreams (workspace_id, title, why, category, horizon, owner_user_id,
+                             estimated_cost_cents, status, goal_id, position, created_by)
+  values (v_casa, 'Viagem de férias no Nordeste', 'Uma semana inteira só nós dois, pé na areia.',
+          'travel', 'short', null, 800000, 'planning', v_goal, 1, v_ana)
+  returning id into v_dream;
+  insert into public.dream_reactions (dream_id, workspace_id, user_id, type) values
+    (v_dream, v_casa, v_bruno, 'love'),
+    (v_dream, v_casa, v_bruno, 'me_too');
+
+  insert into public.dreams (workspace_id, title, why, category, horizon, owner_user_id,
+                             estimated_cost_cents, position, created_by)
+  values (v_casa, 'Nosso apartamento', 'Um cantinho com varanda e espaço para receber os amigos.',
+          'home', 'long', null, 5000000, 2, v_bruno)
+  returning id into v_dream;
+  insert into public.dream_reactions (dream_id, workspace_id, user_id, type) values
+    (v_dream, v_casa, v_ana, 'love');
+
+  insert into public.dreams (workspace_id, title, category, horizon, owner_user_id, position, created_by)
+  values
+    (v_casa, 'Adotar um cachorro', 'pet', 'medium', null, 3, v_ana),
+    (v_casa, 'Aprender a surfar', 'experience', 'someday', v_bruno, 4, v_bruno),
+    (v_casa, 'Ver a aurora boreal', 'travel', 'someday', v_ana, 5, v_ana);
+
+  -- Achieved: shows up in "Sonhos realizados"
+  insert into public.dreams (workspace_id, title, why, category, horizon, owner_user_id,
+                             status, achieved_at, position, created_by)
+  values (v_casa, 'Primeiro show juntos', 'O começo de tudo.', 'experience', 'short', null,
+          'achieved', v_m1 + 14, 6, v_bruno);
+
+  -- Ana's personal board
+  insert into public.dreams (workspace_id, title, category, horizon, owner_user_id,
+                             estimated_cost_cents, position, created_by)
+  values (v_ana_ws, 'Fazer um mestrado', 'education', 'long', v_ana, 4000000, 1, v_ana);
 end;
 $seed$;
