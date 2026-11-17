@@ -122,6 +122,15 @@ O seed cria o workspace pessoal de cada um e o workspace "Casa". "Casa" tem cont
 - Um acerto **não é** receita nem despesa e não altera o saldo das contas: é um registro de que o dinheiro foi repassado entre vocês.
 - Se alguém sai do workspace com saldo em aberto, o saldo continua aparecendo, mas não dá para registrar um acerto com essa pessoa (o banco exige que os dois sejam membros).
 
+## Recorrências
+
+- Em **Mais → Recorrências** (`/recorrencias`): contas fixas e receitas semanais, mensais ou anuais, com data de fim opcional. Dá para pausar, retomar, editar e excluir.
+- **Geração:** ao abrir o app, o componente `RecurrenceRunner` (no layout autenticado) chama a Server Action `runDueRecurrences`, uma vez por sessão do navegador por dia. Ela cria os lançamentos vencidos de todos os workspaces do usuário (até 12 por recorrência de cada vez) via `save_transaction` com `p_recurring_id` e `source = 'recurring'`. Salvar uma recorrência também gera na hora o que já venceu.
+- **Sem duplicar:** o índice único `(recurring_id, date)` barra a segunda inserção quando os dois abrem o app ao mesmo tempo (o erro 23505 é ignorado), e `next_date` só avança se ninguém o mudou antes (lock otimista). Se uma ocorrência falha por outro motivo, a recorrência para naquela data e tenta de novo depois.
+- **Datas** (`src/lib/recurrence.ts`, com testes): mensal e anual mantêm o dia da data inicial; dia 31 cai no último dia dos meses curtos e volta para 31; 29/02 anual cai em 28/02 nos anos não bissextos.
+- Retomar uma recorrência pausada **não** cria os lançamentos do período pausado. Mudar a data inicial ou a frequência vale de hoje em diante. Lançamentos já gerados não mudam ao editar e continuam existindo se a recorrência for excluída.
+- A divisão (meio a meio ou proporcional) é calculada no momento de cada lançamento, com as rendas atuais. Divisão personalizada não é permitida em recorrências.
+
 ## Scripts
 
 | Script | O que faz |

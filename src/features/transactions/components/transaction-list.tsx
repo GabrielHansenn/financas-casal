@@ -9,6 +9,7 @@ import { addDays, formatDayLabel } from "@/lib/dates";
 import { formatBRL, formatSignedBRL } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { deleteTransaction } from "../actions";
+import { withArchivedOptions } from "../edit-data";
 import { signedAmount, type DayGroup } from "../list";
 import type { ListOptions, QuickAddData, SplitType, TransactionDraft, TransactionListItem } from "../types";
 import { TransactionForm } from "./transaction-form";
@@ -36,23 +37,11 @@ function toDraft(tx: TransactionListItem): TransactionDraft {
   };
 }
 
-/** The form only lists active accounts/categories; add archived ones the transaction still uses. */
 function editDataFor(tx: TransactionListItem, data: QuickAddData, options: ListOptions): QuickAddData {
-  const accounts = [...data.accounts];
-  for (const id of [tx.accountId, tx.toAccountId]) {
-    if (!id || accounts.some((a) => a.id === id)) continue;
-    const archived = options.accounts.find((a) => a.id === id);
-    if (archived) accounts.push({ id, name: `${archived.name} (arquivada)`, type: archived.type });
-  }
-  const categories = [...data.categories];
-  if (tx.categoryId && !categories.some((c) => c.id === tx.categoryId)) {
-    const archived = options.categories.find((c) => c.id === tx.categoryId);
-    if (archived) {
-      const { id, type, icon, color, name } = archived;
-      categories.push({ id, type, icon, color, name: `${name} (arquivada)` });
-    }
-  }
-  return { ...data, accounts, categories };
+  return withArchivedOptions(data, options, {
+    accountIds: [tx.accountId, tx.toAccountId],
+    categoryId: tx.categoryId,
+  });
 }
 
 export function TransactionList({

@@ -4,6 +4,7 @@ import { BottomNav } from "@/components/layout/bottom-nav";
 import { SidebarUserSlot, WorkspaceSwitcherSlot } from "@/components/layout/shell-slots";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RecurrenceRunner } from "@/features/recurrences/components/recurrence-runner";
 
 // Authenticated shell. Everything here is static (prerendered) except the session-dependent
 // slots, which stream in behind their own Suspense boundaries so navigation stays instant.
@@ -39,6 +40,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       <BottomNav />
+      {/* Generates due recurring transactions once when the app opens */}
+      <RecurrenceRunner />
     </div>
   );
 }

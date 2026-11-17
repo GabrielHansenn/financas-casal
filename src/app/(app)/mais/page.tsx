@@ -23,15 +23,15 @@ import { getWorkspaceContext } from "@/features/workspaces/active-workspace";
 
 export const metadata: Metadata = { title: "Mais" };
 
-const MANAGE_LINKS: { href: "/workspaces" | "/contas" | "/categorias"; label: string; icon: LucideIcon }[] = [
+const MANAGE_LINKS: { href: "/workspaces" | "/contas" | "/categorias" | "/recorrencias"; label: string; icon: LucideIcon }[] = [
   { href: "/workspaces", label: "Workspaces e convites", icon: UsersIcon },
   { href: "/contas", label: "Contas", icon: LandmarkIcon },
   { href: "/categorias", label: "Categorias", icon: TagsIcon },
+  { href: "/recorrencias", label: "Recorrências", icon: CalendarClockIcon },
 ];
 
 // Sections implemented in later phases are listed as "em breve"
 const UPCOMING: { label: string; icon: LucideIcon }[] = [
-  { label: "Recorrências", icon: CalendarClockIcon },
   { label: "Metas", icon: TargetIcon },
 ];
 
