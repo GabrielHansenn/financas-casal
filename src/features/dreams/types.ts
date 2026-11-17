@@ -1,6 +1,7 @@
 import type { WorkspaceType } from "@/features/workspaces/active-workspace";
 import type { DreamCategory, DreamHorizon, DreamStatus } from "./labels";
 import type { LinkedGoal } from "./lifecycle";
+import type { DreamReaction } from "./social";
 
 export type DreamItem = {
   id: string;
@@ -23,6 +24,8 @@ export type DreamItem = {
   achievedUrl: string | null;
   position: number;
   createdBy: string;
+  /** Reactions of the members (shared workspaces only; always empty in a personal one) */
+  reactions: DreamReaction[];
 };
 
 export type DreamMember = { userId: string; displayName: string };

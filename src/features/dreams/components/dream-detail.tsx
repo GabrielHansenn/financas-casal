@@ -16,6 +16,7 @@ import type { DreamItem, DreamsBoardData } from "../types";
 import { DreamCover } from "./dream-cover";
 import { DreamForm } from "./dream-form";
 import { DreamLifecycle } from "./dream-lifecycle";
+import { DreamReactions } from "./dream-reactions";
 
 export function DreamDetail({
   dream,
@@ -93,6 +94,15 @@ export function DreamDetail({
           </dl>
 
           <DreamLifecycle dream={dream} today={board.today} />
+
+          {isShared ? (
+            <DreamReactions
+              dreamId={dream.id}
+              reactions={dream.reactions}
+              viewerId={board.currentUserId}
+              memberNames={memberNames}
+            />
+          ) : null}
 
           {children}
         </div>

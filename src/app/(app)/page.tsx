@@ -10,6 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ACCOUNT_TYPE_LABELS, getAccountsWithBalances } from "@/features/accounts/queries";
 import { CategoryDonut, type DonutSlice } from "@/features/dashboard/components/category-donut";
 import { getMonthDashboard } from "@/features/dashboard/queries";
+import { DreamOfWeekCard } from "@/features/dreams/components/dream-of-week-card";
+import { getDreamOfWeek } from "@/features/dreams/queries";
 import { GoalProgressBar } from "@/features/goals/components/goal-progress-bar";
 import { computeGoalProgress } from "@/features/goals/progress";
 import { getGoals } from "@/features/goals/queries";
@@ -44,12 +46,14 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
   const raw = Array.isArray(params.month) ? params.month[0] : params.month;
   const month = raw && isISOMonth(raw) ? raw : thisMonth;
 
-  const [{ summary, previous }, accounts, goals] = await Promise.all([
+  const today = todayISO();
+
+  const [{ summary, previous }, accounts, goals, dreamOfWeek] = await Promise.all([
     getMonthDashboard(active.id, month),
     getAccountsWithBalances(active.id),
     getGoals(active.id, { includeArchived: false }),
+    getDreamOfWeek(active.id, today),
   ]);
-  const today = todayISO();
   const totalBalance = accounts.reduce((sum, account) => sum + account.balanceCents, 0);
   const firstName = user.displayName.split(" ")[0];
   const listHref = (filters: { categoryId?: string | null; accountId?: string | null }) =>
@@ -97,6 +101,13 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
           )}
         </CardContent>
       </Card>
+
+      <DreamOfWeekCard
+        dream={dreamOfWeek.dream}
+        hasDreams={dreamOfWeek.hasDreams}
+        isShared={active.type === "shared"}
+        today={today}
+      />
 
       {goals.length > 0 ? (
         <Card>

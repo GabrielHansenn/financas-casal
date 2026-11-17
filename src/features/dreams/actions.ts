@@ -257,3 +257,42 @@ export async function undoDreamAchieved(dreamId: string): Promise<Result> {
   refresh();
   return { ok: true };
 }
+
+const reactionSchema = z.object({ dreamId: z.guid(), type: z.enum(["love", "me_too"]) });
+
+/** Toggles the current user's reaction (shared workspaces only; enforced by RLS). */
+export async function toggleDreamReaction(raw: unknown): Promise<{ ok: true; reacted: boolean } | { ok: false; error: string }> {
+  const parsed = reactionSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: "Reação inválida." };
+  const { dreamId, type } = parsed.data;
+
+  const { user } = await getWorkspaceContext();
+  const supabase = await createClient();
+  const { data: dream } = await supabase.from("dreams").select("id, workspace_id").eq("id", dreamId).maybeSingle();
+  if (!dream) return { ok: false, error: "Sonho não encontrado." };
+
+  const { data: removed, error: deleteError } = await supabase
+    .from("dream_reactions")
+    .delete()
+    .eq("dream_id", dream.id)
+    .eq("user_id", user.id)
+    .eq("type", type)
+    .select("type");
+  if (deleteError) return { ok: false, error: "Não foi possível reagir." };
+  if (removed.length > 0) {
+    refresh();
+    return { ok: true, reacted: false };
+  }
+
+  const { error } = await supabase
+    .from("dream_reactions")
+    .insert({ dream_id: dream.id, workspace_id: dream.workspace_id, type });
+  // 23505: a double tap already added it; same end state
+  if (error && error.code !== "23505") {
+    if (error.code === "42501") return { ok: false, error: "Reações só existem no workspace do casal." };
+    console.error("[dreams] react", error.code, error.message);
+    return { ok: false, error: "Não foi possível reagir." };
+  }
+  refresh();
+  return { ok: true, reacted: true };
+}

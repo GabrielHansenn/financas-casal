@@ -16,6 +16,7 @@ import { DreamCard } from "./dream-card";
 import { DreamCover } from "./dream-cover";
 import { DreamForm } from "./dream-form";
 import { DreamGoalProgress } from "./dream-goal-progress";
+import { DreamReactions } from "./dream-reactions";
 import { DreamReorder } from "./dream-reorder";
 
 const SELECT_CLASS =
@@ -165,8 +166,21 @@ export function DreamBoard({ data, filters }: { data: DreamsBoardData; filters: 
                   memberNames={memberNames}
                   showOwner={isShared}
                   footer={
-                    dream.status === "planning" && dream.goal ? (
-                      <DreamGoalProgress goal={dream.goal} status={dream.status} today={data.today} compact />
+                    (dream.status === "planning" && dream.goal) || isShared ? (
+                      <div className="grid gap-2">
+                        {dream.status === "planning" && dream.goal ? (
+                          <DreamGoalProgress goal={dream.goal} status={dream.status} today={data.today} compact />
+                        ) : null}
+                        {isShared ? (
+                          <DreamReactions
+                            dreamId={dream.id}
+                            reactions={dream.reactions}
+                            viewerId={data.currentUserId}
+                            memberNames={memberNames}
+                            compact
+                          />
+                        ) : null}
+                      </div>
                     ) : undefined
                   }
                 />
