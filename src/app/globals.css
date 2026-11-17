@@ -130,4 +130,19 @@
   html {
     @apply font-sans;
   }
+  /* Tells the browser which theme is active so native UI (select dropdowns, date pickers,
+     scrollbars) is drawn dark in dark mode instead of white with light text. */
+  :root {
+    color-scheme: light;
+  }
+  .dark {
+    color-scheme: dark;
+  }
+  /* Native <select> popups: the select itself is transparent, so give the options an explicit
+     surface; otherwise some browsers (Chrome/Edge on Windows) keep a white popup. */
+  select option,
+  select optgroup {
+    background-color: var(--popover);
+    color: var(--popover-foreground);
+  }
 }
