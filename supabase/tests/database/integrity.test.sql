@@ -3,7 +3,7 @@
 -- Run with: npm run test:db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(32);
+select plan(36);
 
 -- =====================================================================
 -- Test helpers (rolled back with the transaction)
@@ -270,6 +270,33 @@ select throws_ok(
   $$ insert into public.settlements (workspace_id, from_user_id, to_user_id, amount_cents, date)
      values (tests.get('casa'), tests.uid('bob'), tests.uid('bob'), 100, current_date) $$,
   '23514', null, 'settlement to oneself is rejected');
+
+-- =====================================================================
+-- Goals: balance (sum of contributions) can never go negative
+-- =====================================================================
+do $$
+declare v_goal uuid;
+begin
+  insert into public.goals (workspace_id, name, target_cents) values (tests.get('casa'), 'Reserva', 100000)
+  returning id into v_goal;
+  perform tests.put('goal', v_goal);
+  insert into public.goal_contributions (goal_id, workspace_id, amount_cents, date)
+  values (v_goal, tests.get('casa'), 3000, current_date);
+end $$;
+
+select lives_ok(
+  $$ insert into public.goal_contributions (goal_id, workspace_id, amount_cents, date)
+     values (tests.get('goal'), tests.get('casa'), -3000, current_date) $$,
+  'withdrawing the whole balance is allowed');
+select throws_ok(
+  $$ insert into public.goal_contributions (goal_id, workspace_id, amount_cents, date)
+     values (tests.get('goal'), tests.get('casa'), -1, current_date) $$,
+  '23514', null, 'withdrawing more than the balance is rejected');
+select throws_ok(
+  $$ delete from public.goal_contributions where goal_id = tests.get('goal') and amount_cents = 3000 $$,
+  '23514', null, 'deleting a deposit that was already withdrawn is rejected');
+select is((select current_cents from public.goal_progress where goal_id = tests.get('goal')), 0::bigint,
+  'goal_progress sums deposits and withdrawals');
 
 select tests.logout();
 select * from finish();

@@ -131,6 +131,13 @@ O seed cria o workspace pessoal de cada um e o workspace "Casa". "Casa" tem cont
 - Retomar uma recorrência pausada **não** cria os lançamentos do período pausado. Mudar a data inicial ou a frequência vale de hoje em diante. Lançamentos já gerados não mudam ao editar e continuam existindo se a recorrência for excluída.
 - A divisão (meio a meio ou proporcional) é calculada no momento de cada lançamento, com as rendas atuais. Divisão personalizada não é permitida em recorrências.
 
+## Metas
+
+- Em **Mais → Metas** (`/metas`): nome, valor-alvo e prazo opcional. Aportes e resgates (com data, observação e quem fez), barra de progresso e, com prazo, quanto guardar por mês (arredondado para cima). As 3 primeiras metas ativas aparecem na tela Início.
+- O saldo da meta é a soma das movimentações (view `goal_progress`); resgates são valores negativos. Uma meta é um acompanhamento: aportes **não** movimentam o saldo das contas.
+- **O saldo nunca fica negativo:** o trigger `assert_goal_balance` (migration `20261120120000`) trava a linha da meta e recusa com 23514 qualquer inserção, alteração ou exclusão que deixe a soma abaixo de zero. Isso vale mesmo com os dois resgatando ao mesmo tempo, e também impede excluir um aporte que já foi resgatado.
+- Arquivar tira a meta da lista principal e bloqueia movimentações. Excluir apaga a meta e o histórico (pede para digitar o nome quando há movimentações).
+
 ## Scripts
 
 | Script | O que faz |

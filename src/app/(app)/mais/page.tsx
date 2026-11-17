@@ -13,7 +13,6 @@ import {
 import { Suspense } from "react";
 import { PageHeader } from "@/components/page-header";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,16 +22,14 @@ import { getWorkspaceContext } from "@/features/workspaces/active-workspace";
 
 export const metadata: Metadata = { title: "Mais" };
 
-const MANAGE_LINKS: { href: "/workspaces" | "/contas" | "/categorias" | "/recorrencias"; label: string; icon: LucideIcon }[] = [
-  { href: "/workspaces", label: "Workspaces e convites", icon: UsersIcon },
+type ManageHref = "/metas" | "/recorrencias" | "/contas" | "/categorias" | "/workspaces";
+
+const MANAGE_LINKS: { href: ManageHref; label: string; icon: LucideIcon }[] = [
+  { href: "/metas", label: "Metas", icon: TargetIcon },
+  { href: "/recorrencias", label: "Recorrências", icon: CalendarClockIcon },
   { href: "/contas", label: "Contas", icon: LandmarkIcon },
   { href: "/categorias", label: "Categorias", icon: TagsIcon },
-  { href: "/recorrencias", label: "Recorrências", icon: CalendarClockIcon },
-];
-
-// Sections implemented in later phases are listed as "em breve"
-const UPCOMING: { label: string; icon: LucideIcon }[] = [
-  { label: "Metas", icon: TargetIcon },
+  { href: "/workspaces", label: "Workspaces e convites", icon: UsersIcon },
 ];
 
 export default function MorePage() {
@@ -73,13 +70,6 @@ export default function MorePage() {
                     <span className="flex-1">{label}</span>
                     <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
                   </Link>
-                </li>
-              ))}
-              {UPCOMING.map(({ label, icon: Icon }) => (
-                <li key={label} className="flex items-center gap-3 py-3 text-muted-foreground">
-                  <Icon className="size-4" aria-hidden />
-                  <span className="flex-1">{label}</span>
-                  <Badge variant="secondary">Em breve</Badge>
                 </li>
               ))}
             </ul>

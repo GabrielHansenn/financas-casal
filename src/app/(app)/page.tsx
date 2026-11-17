@@ -10,11 +10,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ACCOUNT_TYPE_LABELS, getAccountsWithBalances } from "@/features/accounts/queries";
 import { CategoryDonut, type DonutSlice } from "@/features/dashboard/components/category-donut";
 import { getMonthDashboard } from "@/features/dashboard/queries";
+import { GoalProgressBar } from "@/features/goals/components/goal-progress-bar";
+import { computeGoalProgress } from "@/features/goals/progress";
+import { getGoals } from "@/features/goals/queries";
 import type { MonthSummary } from "@/features/dashboard/summary";
 import { QuickAddSlot } from "@/features/transactions/components/quick-add-slot";
 import { transactionsHref } from "@/features/transactions/list";
 import { getWorkspaceContext } from "@/features/workspaces/active-workspace";
-import { addMonths, currentMonth, formatMonthLabel, isISOMonth } from "@/lib/dates";
+import { addMonths, currentMonth, formatMonthLabel, isISOMonth, todayISO } from "@/lib/dates";
 import { formatBRL, formatSignedBRL } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
@@ -40,10 +43,12 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
   const month = raw && isISOMonth(raw) ? raw : thisMonth;
 
   const { user, active } = await getWorkspaceContext();
-  const [{ summary, previous }, accounts] = await Promise.all([
+  const [{ summary, previous }, accounts, goals] = await Promise.all([
     getMonthDashboard(active.id, month),
     getAccountsWithBalances(active.id),
+    getGoals(active.id, { includeArchived: false }),
   ]);
+  const today = todayISO();
   const totalBalance = accounts.reduce((sum, account) => sum + account.balanceCents, 0);
   const firstName = user.displayName.split(" ")[0];
   const listHref = (filters: { categoryId?: string | null; accountId?: string | null }) =>
@@ -91,6 +96,42 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
           )}
         </CardContent>
       </Card>
+
+      {goals.length > 0 ? (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-4">
+            <CardTitle>Metas</CardTitle>
+            <Link
+              href="/metas"
+              className="flex items-center gap-0.5 text-sm text-primary underline-offset-4 hover:underline"
+            >
+              Ver metas <ChevronRightIcon className="size-4" aria-hidden />
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <ul className="grid gap-4">
+              {goals.slice(0, 3).map((goal) => {
+                const progress = computeGoalProgress({ ...goal, today });
+                return (
+                  <li key={goal.id} className="grid gap-1.5">
+                    <div className="flex items-baseline justify-between gap-4 text-sm">
+                      <span className="truncate font-medium">{goal.name}</span>
+                      <span className="shrink-0 text-muted-foreground tabular-nums">
+                        {formatBRL(goal.currentCents)} / {formatBRL(goal.targetCents)}
+                      </span>
+                    </div>
+                    <GoalProgressBar
+                      fraction={progress.fraction}
+                      reached={progress.reached}
+                      label={`Progresso de ${goal.name}`}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>
