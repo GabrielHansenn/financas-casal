@@ -101,6 +101,13 @@ O seed cria o workspace pessoal de cada um e o workspace "Casa". "Casa" tem cont
 - O link (`/convite/<token>`) vale **7 dias**, é de **uso único** e só funciona para o email convidado, **depois de confirmado**. Só o hash do token fica salvo no banco: se o link se perder, convide de novo, e o convite anterior é cancelado.
 - Membros podem informar a **renda mensal**, usada na divisão proporcional. O dono pode renomear, remover membros e excluir o workspace, o que apaga todos os dados dele. Os outros membros podem sair.
 
+## Lançamentos
+
+- **Lançamento rápido**: o botão **+** abre o formulário. Valor, categoria e Salvar; o resto tem padrão (despesa, hoje, última conta usada, "eu paguei", meio a meio no workspace do casal). A divisão é calculada em `src/lib/splits.ts`, e o servidor recalcula a partir das rendas no banco (só a divisão personalizada usa os valores enviados).
+- **Transações** (`/transacoes`): lista do mês agrupada por dia, com total do dia e resumo de receitas, despesas e saldo. Os filtros ficam na URL (`?month=AAAA-MM&category=<id>&account=<id>`), então dá para salvar ou compartilhar um filtro. Valores inválidos são ignorados.
+- Tocar num lançamento abre a edição (mesmo formulário) e o botão de excluir. Transferências não contam em receitas/despesas; com filtro de conta, aparecem como entrada (+) ou saída (−) daquela conta.
+- Contas e categorias arquivadas somem do formulário de novos lançamentos, mas os lançamentos antigos continuam mostrando o nome e podem ser editados.
+
 ## Scripts
 
 | Script | O que faz |

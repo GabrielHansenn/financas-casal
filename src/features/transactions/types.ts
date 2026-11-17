@@ -46,3 +46,25 @@ export const SPLIT_TYPE_LABELS: Record<SplitType, string> = {
   custom: "Personalizada",
   none: "Sem divisão",
 };
+
+/** One row of the transaction list. */
+export type TransactionListItem = {
+  id: string;
+  type: TransactionType;
+  amountCents: number;
+  date: string;
+  description: string | null;
+  accountId: string;
+  toAccountId: string | null;
+  categoryId: string | null;
+  paidBy: string | null;
+  payerName: string | null;
+  splitType: SplitType;
+  splits: { userId: string; amountCents: number }[];
+};
+
+/** Accounts and categories of the workspace, including archived ones (for names and filters). */
+export type ListOptions = {
+  accounts: (QuickAddAccount & { archived: boolean })[];
+  categories: (QuickAddCategory & { archived: boolean })[];
+};
