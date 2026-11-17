@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  addDays,
   addMonths,
   currentMonth,
   daysInMonth,
@@ -42,6 +43,13 @@ describe("month helpers", () => {
     expect(addMonths("2026-12", 1)).toBe("2027-01");
     expect(addMonths("2026-01", -1)).toBe("2025-12");
     expect(addMonths("2026-05", -17)).toBe("2024-12");
+  });
+
+  it("adds days across month and year boundaries", () => {
+    expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
+    expect(addDays("2028-03-01", -1)).toBe("2028-02-29");
+    expect(addDays("2026-12-31", 1)).toBe("2027-01-01");
+    expect(addDays("2026-11-17", 0)).toBe("2026-11-17");
   });
 
   it("rejects invalid input", () => {

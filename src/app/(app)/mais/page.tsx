@@ -23,10 +23,14 @@ import { getWorkspaceContext } from "@/features/workspaces/active-workspace";
 
 export const metadata: Metadata = { title: "Mais" };
 
+const MANAGE_LINKS: { href: "/workspaces" | "/contas" | "/categorias"; label: string; icon: LucideIcon }[] = [
+  { href: "/workspaces", label: "Workspaces e convites", icon: UsersIcon },
+  { href: "/contas", label: "Contas", icon: LandmarkIcon },
+  { href: "/categorias", label: "Categorias", icon: TagsIcon },
+];
+
 // Sections implemented in later phases are listed as "em breve"
 const UPCOMING: { label: string; icon: LucideIcon }[] = [
-  { label: "Contas", icon: LandmarkIcon },
-  { label: "Categorias", icon: TagsIcon },
   { label: "Recorrências", icon: CalendarClockIcon },
   { label: "Metas", icon: TargetIcon },
 ];
@@ -62,16 +66,15 @@ export default function MorePage() {
           </CardHeader>
           <CardContent>
             <ul className="divide-y">
-              <li>
-                <Link
-                  href="/workspaces"
-                  className="flex items-center gap-3 py-3 transition-colors hover:text-foreground"
-                >
-                  <UsersIcon className="size-4" aria-hidden />
-                  <span className="flex-1">Workspaces e convites</span>
-                  <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
-                </Link>
-              </li>
+              {MANAGE_LINKS.map(({ href, label, icon: Icon }) => (
+                <li key={href}>
+                  <Link href={href} className="flex items-center gap-3 py-3 transition-colors hover:text-foreground">
+                    <Icon className="size-4" aria-hidden />
+                    <span className="flex-1">{label}</span>
+                    <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
+                  </Link>
+                </li>
+              ))}
               {UPCOMING.map(({ label, icon: Icon }) => (
                 <li key={label} className="flex items-center gap-3 py-3 text-muted-foreground">
                   <Icon className="size-4" aria-hidden />

@@ -59,6 +59,14 @@ export function addMonths(month: string, delta: number): string {
   return `${year}-${String(mon).padStart(2, "0")}`;
 }
 
+/** Shifts an ISO date by `delta` days, e.g. addDays("2026-03-01", -1) -> "2026-02-28". */
+export function addDays(iso: string, delta: number): string {
+  if (!isISODate(iso)) throw new RangeError(`Invalid date: ${iso}`);
+  const date = new Date(`${iso}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + delta);
+  return date.toISOString().slice(0, 10);
+}
+
 // Formatting uses UTC because ISO dates are parsed as UTC midnight below.
 const dateBRFormatter = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
 const monthLabelFormatter = new Intl.DateTimeFormat("pt-BR", {

@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ACCOUNT_TYPE_LABELS, getAccountsWithBalances } from "@/features/accounts/queries";
+import { QuickAddSlot } from "@/features/transactions/components/quick-add-slot";
 import { getWorkspaceContext } from "@/features/workspaces/active-workspace";
 import { formatBRL } from "@/lib/money";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ export default function HomePage() {
       <Suspense fallback={<HomeSkeleton />}>
         <HomeContent />
       </Suspense>
+      <QuickAddSlot />
     </>
   );
 }

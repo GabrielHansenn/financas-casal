@@ -4,7 +4,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { refresh } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { getCurrentUser } from "@/lib/auth";
 import { escapeHtml, sendEmail } from "@/lib/email";
 import { env } from "@/lib/env";
@@ -17,7 +17,7 @@ const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
-const workspaceId = z.uuid({ error: "Workspace inválido." });
+const workspaceId = z.guid({ error: "Workspace inválido." });
 const workspaceName = z
   .string()
   .trim()
@@ -175,7 +175,7 @@ export async function inviteMember(_prev: InviteState, formData: FormData): Prom
 }
 
 export async function revokeInvite(inviteId: string): Promise<ActionResult> {
-  const parsed = z.uuid().safeParse(inviteId);
+  const parsed = z.guid().safeParse(inviteId);
   if (!parsed.success) return { ok: false, error: "Convite inválido." };
 
   await getCurrentUser();
@@ -255,7 +255,7 @@ export async function renameWorkspace(_prev: FormState, formData: FormData): Pro
 
 export async function updateMemberIncome(_prev: FormState, formData: FormData): Promise<FormState> {
   const ids = z
-    .object({ workspaceId, userId: z.uuid() })
+    .object({ workspaceId, userId: z.guid() })
     .safeParse({ workspaceId: formData.get("workspaceId"), userId: formData.get("userId") });
   if (!ids.success) return { error: "Dados inválidos." };
 
@@ -314,7 +314,7 @@ export async function leaveWorkspace(id: string): Promise<ActionResult> {
 }
 
 export async function removeMember(id: string, userId: string): Promise<ActionResult> {
-  const parsed = z.object({ workspaceId, userId: z.uuid() }).safeParse({ workspaceId: id, userId });
+  const parsed = z.object({ workspaceId, userId: z.guid() }).safeParse({ workspaceId: id, userId });
   if (!parsed.success) return { ok: false, error: "Dados inválidos." };
 
   await getCurrentUser();
