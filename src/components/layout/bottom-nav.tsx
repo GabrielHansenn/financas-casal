@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { isActivePath, NAV_ITEMS } from "./nav-items";
+import { isActiveTab, NAV_ITEMS } from "./nav-items";
 
 // Mobile bottom navigation (hidden on md+). Respects the iOS home indicator safe area.
 export function BottomNav() {
@@ -16,7 +16,7 @@ export function BottomNav() {
     >
       <ul className="grid grid-cols-4">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = isActivePath(pathname, href);
+          const active = isActiveTab(pathname, href);
           return (
             <li key={href}>
               <Link

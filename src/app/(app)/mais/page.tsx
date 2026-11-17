@@ -1,16 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  CalendarClockIcon,
-  ChevronRightIcon,
-  LandmarkIcon,
-  LogOutIcon,
-  TagsIcon,
-  TargetIcon,
-  UsersIcon,
-  type LucideIcon,
-} from "lucide-react";
+import { ChevronRightIcon, LogOutIcon } from "lucide-react";
 import { Suspense } from "react";
+import { MANAGE_ITEMS } from "@/components/layout/nav-items";
 import { PageHeader } from "@/components/page-header";
 import { InstallApp } from "@/components/pwa/install-app";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -22,16 +14,6 @@ import { ProfileForm } from "@/features/profile/components/profile-form";
 import { getWorkspaceContext } from "@/features/workspaces/active-workspace";
 
 export const metadata: Metadata = { title: "Mais" };
-
-type ManageHref = "/metas" | "/recorrencias" | "/contas" | "/categorias" | "/workspaces";
-
-const MANAGE_LINKS: { href: ManageHref; label: string; icon: LucideIcon }[] = [
-  { href: "/metas", label: "Metas", icon: TargetIcon },
-  { href: "/recorrencias", label: "Recorrências", icon: CalendarClockIcon },
-  { href: "/contas", label: "Contas", icon: LandmarkIcon },
-  { href: "/categorias", label: "Categorias", icon: TagsIcon },
-  { href: "/workspaces", label: "Workspaces e convites", icon: UsersIcon },
-];
 
 export default function MorePage() {
   return (
@@ -73,7 +55,7 @@ export default function MorePage() {
           </CardHeader>
           <CardContent>
             <ul className="divide-y">
-              {MANAGE_LINKS.map(({ href, label, icon: Icon }) => (
+              {MANAGE_ITEMS.map(({ href, label, icon: Icon }) => (
                 <li key={href}>
                   <Link href={href} className="flex items-center gap-3 py-3 transition-colors hover:text-foreground">
                     <Icon className="size-4" aria-hidden />
