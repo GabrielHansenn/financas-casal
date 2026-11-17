@@ -59,6 +59,32 @@ npm run test:db        # testes pgTAP (RLS e integridade) em supabase/tests
 
 Sempre que o schema mudar, rode `npm run db:types`.
 
+### Usuários de teste (seed)
+
+| Email | Senha | Papel |
+|---|---|---|
+| `ana@teste.local` | `senha123` | dona do workspace compartilhado "Casa", renda R$ 6.000 |
+| `bruno@teste.local` | `senha123` | membro de "Casa", renda R$ 4.000 |
+
+O seed cria o workspace pessoal de cada um e o workspace "Casa". "Casa" tem conta conjunta e cartão, despesas do mês atual e do anterior (divisões igual, proporcional e personalizada), um acerto, o aluguel recorrente e uma meta com aportes. As datas são relativas ao mês atual, então sempre há dados do "mês atual".
+
+### Modelo e segurança
+
+- **Workspaces**: todo usuário ganha um workspace pessoal no cadastro (trigger `on_auth_user_created`), com categorias padrão e uma conta. Workspaces compartilhados, convites e aceite passam por RPCs (`create_shared_workspace`, `create_workspace_invite`, `accept_workspace_invite`).
+- **RLS** em todas as tabelas, via `is_workspace_member(workspace_id)`. Usuários anônimos não têm acesso a nada.
+- **Integridade no banco**:
+  - FKs compostas `(id, workspace_id)` impedem referências entre workspaces.
+  - Uma constraint trigger *deferrable* garante que a soma dos splits é igual ao valor da transação.
+  - Triggers garantem que `paid_by` e os splits são de membros do workspace.
+- **Transação + splits** são gravados atomicamente pela RPC `save_transaction`.
+- **Convenção para novas funções SQL**: o Postgres concede `EXECUTE` a `PUBLIC` por padrão. Toda função nova precisa de `revoke execute ... from public, anon, authenticated` e de um `grant` explícito, se o app for chamá-la.
+
+### Testes do banco (pgTAP)
+
+`npm run test:db` roda `supabase/tests/database/*.test.sql`. Cada arquivo roda numa transação com rollback, então não altera os dados do seed.
+- `rls.test.sql`: um usuário de fora não vê nem altera nada de um workspace alheio; um membro não escala privilégios; anon não lê nada.
+- `integrity.test.sql`: FKs entre workspaces, regras de split, convites (email errado, reuso, expiração), recorrência duplicada, saldos e ledger do acerto.
+
 ## Scripts
 
 | Script | O que faz |
