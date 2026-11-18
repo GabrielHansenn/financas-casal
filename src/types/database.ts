@@ -199,14 +199,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "avatar_url": string | null,"created_at": string,"display_name": string,"id": string,"updated_at": string
+                    "avatar_url": string | null,"created_at": string,"deleted_at": string | null,"display_name": string,"id": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "avatar_url"?: string | null,"created_at"?: string,"display_name": string,"id": string,"updated_at"?: string
+                    "avatar_url"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"display_name": string,"id": string,"updated_at"?: string
                   }
                   Update: {
-                    "avatar_url"?: string | null,"created_at"?: string,"display_name"?: string,"id"?: string,"updated_at"?: string
+                    "avatar_url"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"display_name"?: string,"id"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -523,6 +523,19 @@ isOneToOne: false
 "create_workspace_invite":
 { Args: { "p_email": string,"p_workspace_id": string }; Returns: string
                            },
+"delete_account":
+{ Args: { "p_account_id": string,"p_move_to"?: string }; Returns: {
+              "deleted_transfers": number,"moved_recurrences": number,"moved_transactions": number
+            }[]
+                           },
+"delete_category":
+{ Args: { "p_category_id": string,"p_move_to"?: string,"p_uncategorize"?: boolean }; Returns: {
+              "moved_recurrences": number,"moved_transactions": number
+            }[]
+                           },
+"delete_my_account":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
 "get_invite_preview":
 { Args: { "p_token": string }; Returns: {
               "email": string,"expires_at": string,"invited_by_name": string,"status": Database["public"]['Enums']["invite_status"],"workspace_name": string
@@ -537,6 +550,9 @@ isOneToOne: false
 { Args: { "p_workspace_id": string }; Returns: {
               "amount_cents": number,"creditor_id": string,"debtor_id": string,"kind": string
             }[]
+                           },
+"has_workspace_history":
+{ Args: { "p_user_id": string,"p_workspace_id": string }; Returns: boolean
                            },
 "is_shared_workspace":
 { Args: { "p_workspace_id": string }; Returns: boolean
@@ -556,8 +572,14 @@ isOneToOne: false
 "seed_workspace_defaults":
 { Args: { "p_account_name": string,"p_workspace_id": string }; Returns: undefined
                            },
+"shares_history_with":
+{ Args: { "p_user_id": string }; Returns: boolean
+                           },
 "shares_workspace_with":
 { Args: { "p_user_id": string }; Returns: boolean
+                           },
+"transfer_workspace_ownership":
+{ Args: { "p_new_owner": string,"p_workspace_id": string }; Returns: undefined
                            },
 "user_is_member":
 { Args: { "p_user_id": string,"p_workspace_id": string }; Returns: boolean
