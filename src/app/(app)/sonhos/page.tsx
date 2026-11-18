@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PageHeader } from "@/components/page-header";
+import { HelpButton } from "@/features/help/components/help-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { parseDreamFilters } from "@/features/dreams/board";
 import { DreamBoard } from "@/features/dreams/components/dream-board";
@@ -11,7 +12,11 @@ export const metadata: Metadata = { title: "Sonhos" };
 export default function DreamsPage({ searchParams }: PageProps<"/sonhos">) {
   return (
     <>
-      <PageHeader title="Quadro dos Sonhos" description="O que vocês querem viver. As metas cuidam de como chegar lá." />
+      <PageHeader
+        title="Quadro dos Sonhos"
+        description="O que vocês querem viver. As metas cuidam de como chegar lá."
+        actions={<HelpButton topic="dreams" />}
+      />
       <Suspense fallback={<BoardSkeleton />}>
         <DreamsContent searchParams={searchParams} />
       </Suspense>

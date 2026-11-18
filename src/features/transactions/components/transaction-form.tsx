@@ -9,6 +9,7 @@ import { MoneyInput } from "@/components/money-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { HelpButton } from "@/features/help/components/help-button";
 import { addDays } from "@/lib/dates";
 import { formatBRL } from "@/lib/money";
 import { computeSplits, SPLIT_ERROR_MESSAGES } from "@/lib/splits";
@@ -322,7 +323,10 @@ export function TransactionForm({
           </fieldset>
 
           <div className="grid gap-2">
-            <Label htmlFor="split-type">Divisão</Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="split-type">Divisão</Label>
+              <HelpButton topic="split" size="inline" />
+            </div>
             <select
               id="split-type"
               value={splitType}

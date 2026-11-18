@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PageHeader } from "@/components/page-header";
+import { HelpButton } from "@/features/help/components/help-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecurrenceList } from "@/features/recurrences/components/recurrence-list";
 import { getRecurrences } from "@/features/recurrences/queries";
@@ -15,6 +16,7 @@ export default function RecurrencesPage() {
       <PageHeader
         title="Recorrências"
         description="Contas fixas e receitas que se repetem. São lançadas sozinhas quando vocês abrem o app."
+        actions={<HelpButton topic="recurrences" />}
       />
       <Suspense fallback={<RecurrencesSkeleton />}>
         <RecurrencesContent />

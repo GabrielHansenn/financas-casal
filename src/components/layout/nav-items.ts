@@ -1,5 +1,6 @@
 import {
   CalendarClockIcon,
+  CircleHelpIcon,
   EllipsisIcon,
   HeartHandshakeIcon,
   HouseIcon,
@@ -28,7 +29,7 @@ export const NAV_ITEMS: NavItem[] = [
 ];
 
 export type ManageItem = {
-  href: "/metas" | "/recorrencias" | "/contas" | "/categorias" | "/workspaces";
+  href: "/metas" | "/recorrencias" | "/contas" | "/categorias" | "/workspaces" | "/ajuda";
   label: string;
   icon: LucideIcon;
 };
@@ -40,6 +41,7 @@ export const MANAGE_ITEMS: ManageItem[] = [
   { href: "/contas", label: "Contas", icon: LandmarkIcon },
   { href: "/categorias", label: "Categorias", icon: TagsIcon },
   { href: "/workspaces", label: "Workspaces e convites", icon: UsersIcon },
+  { href: "/ajuda", label: "Ajuda", icon: CircleHelpIcon },
 ];
 
 export function isActivePath(pathname: string | null, href: string): boolean {

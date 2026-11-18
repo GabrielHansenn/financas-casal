@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
+import { HelpButton } from "@/features/help/components/help-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,7 +21,11 @@ export const metadata: Metadata = { title: "Casal" };
 export default function CouplePage() {
   return (
     <>
-      <PageHeader title="Casal" description="Quem deve quanto para quem." />
+      <PageHeader
+        title="Casal"
+        description="Quem deve quanto para quem."
+        actions={<HelpButton topic="settlement" />}
+      />
       <Suspense fallback={<CoupleSkeleton />}>
         <CoupleContent />
       </Suspense>

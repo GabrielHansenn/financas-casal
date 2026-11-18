@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { HeartHandshakeIcon, UserIcon } from "lucide-react";
 import { Suspense } from "react";
 import { PageHeader } from "@/components/page-header";
+import { HelpButton } from "@/features/help/components/help-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -23,7 +24,11 @@ export const metadata: Metadata = { title: "Workspaces" };
 export default function WorkspacesPage() {
   return (
     <>
-      <PageHeader title="Workspaces" description="Seu espaço pessoal e os espaços compartilhados com o casal." />
+      <PageHeader
+        title="Workspaces"
+        description="Seu espaço pessoal e os espaços compartilhados com o casal."
+        actions={<HelpButton topic="workspaces" />}
+      />
       <Suspense fallback={<WorkspacesSkeleton />}>
         <WorkspacesContent />
       </Suspense>

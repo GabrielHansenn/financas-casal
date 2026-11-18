@@ -8,6 +8,7 @@ import { MoneyInput } from "@/components/money-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { HelpButton } from "@/features/help/components/help-button";
 import { formatBRL } from "@/lib/money";
 import { describeSchedule, MAX_OCCURRENCES_PER_RUN, type Frequency } from "@/lib/recurrence";
 import { computeSplits } from "@/lib/splits";
@@ -233,7 +234,10 @@ export function RecurrenceForm({
             </div>
           </fieldset>
           <div className="grid gap-2">
-            <Label htmlFor="rec-split">Divisão</Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="rec-split">Divisão</Label>
+              <HelpButton topic="split" size="inline" />
+            </div>
             <select
               id="rec-split"
               value={splitType}

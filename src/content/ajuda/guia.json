@@ -1,0 +1,178 @@
+[
+  {
+    "slug": "workspaces",
+    "title": "Workspaces: pessoal e do casal",
+    "summary": "Cada workspace é um espaço separado, com suas contas, categorias e lançamentos.",
+    "keywords": ["workspace", "pessoal", "casal", "compartilhado", "privacidade", "trocar", "separar", "dono", "membro"],
+    "blocks": [
+      { "type": "p", "text": "Pense num workspace como uma \"carteira\" separada. Tudo o que você lança fica dentro do workspace que está ativo no momento." },
+      { "type": "list", "items": [
+        "**Pessoal**: só você vê. Todo mundo ganha um ao criar a conta, e ele não pode ser compartilhado.",
+        "**Do casal** (compartilhado): vocês dois veem e editam tudo o que está lá dentro, e é onde as despesas podem ser divididas."
+      ] },
+      { "type": "example", "title": "Exemplo", "text": "Gabriel lança o almoço do trabalho no Pessoal: Ana não vê. O aluguel ele lança no workspace \"Casa\", dividido meio a meio: os dois veem, e o acerto do casal é atualizado." },
+      { "type": "h", "text": "Dono e membro" },
+      { "type": "p", "text": "Quem cria o workspace do casal é o **dono**: só ele convida, remove pessoas, renomeia e exclui o workspace. Os dois lançam, editam e excluem lançamentos normalmente. O dono pode passar essa função para o par em **Workspaces e convites**, pelo menu ⋯ ao lado do nome da pessoa (**Tornar dono**)." },
+      { "type": "tip", "text": "Para trocar de workspace, use o seletor: no topo da tela no celular, ou na barra lateral no computador." }
+    ],
+    "related": ["meu-par-ve-meus-gastos-pessoais", "como-sair-de-um-workspace", "convidar-parceiro"]
+  },
+  {
+    "slug": "contas",
+    "title": "Contas",
+    "summary": "Onde o dinheiro está: conta corrente, poupança, cartão de crédito ou dinheiro vivo.",
+    "keywords": ["conta", "banco", "cartão", "crédito", "poupança", "dinheiro", "carteira", "saldo", "saldo inicial", "nubank"],
+    "blocks": [
+      { "type": "p", "text": "Cada lançamento sai de uma conta (ou entra nela). Crie as suas em **Mais → Contas → Nova conta**." },
+      { "type": "list", "items": [
+        "**Saldo inicial**: quanto tinha na conta quando você começou a usar o app. Se é uma dívida, como a fatura do cartão, escolha \"Devo esse valor\".",
+        "**Saldo atual** = saldo inicial + receitas − despesas, com as transferências entrando e saindo.",
+        "No workspace do casal, dá para dizer **de quem é** a conta, ou deixar como \"Conjunta\"."
+      ] },
+      { "type": "example", "title": "Exemplo", "text": "Ana cria \"Nubank\" com saldo inicial de R$ 1.000,00. Ela recebe o salário de R$ 4.000,00 e paga R$ 300,00 de luz: o saldo fica R$ 4.700,00." },
+      { "type": "p", "text": "Editar, arquivar e excluir ficam no menu **⋯** de cada conta." },
+      { "type": "tip", "text": "Uma conta que você não usa mais tem lançamentos antigos? **Arquive** em vez de excluir: ela some dos seletores, mas o histórico continua." }
+    ],
+    "related": ["como-excluir-uma-conta", "o-que-e-arquivar", "transacoes"]
+  },
+  {
+    "slug": "categorias",
+    "title": "Categorias",
+    "summary": "Para saber para onde o dinheiro vai: Mercado, Moradia, Lazer…",
+    "keywords": ["categoria", "categorias", "ícone", "cor", "tipo", "despesa", "receita", "organizar"],
+    "blocks": [
+      { "type": "p", "text": "Cada workspace já vem com categorias de despesa (Mercado, Alimentação, Moradia, Transporte…) e de receita (Salário, Freelance, Rendimentos…). Em **Mais → Categorias** você cria novas, escolhe ícone e cor, e renomeia as que quiser." },
+      { "type": "list", "items": [
+        "Uma categoria é de **despesa** ou de **receita**, e isso não muda depois de criada.",
+        "Os gráficos do início somam os gastos por categoria."
+      ] },
+      { "type": "tip", "text": "Para excluir uma categoria que já tem lançamentos, o app pergunta o que fazer com eles: mover para outra categoria, deixar sem categoria, ou só arquivar." }
+    ],
+    "related": ["excluir-categoria", "o-que-e-arquivar"]
+  },
+  {
+    "slug": "transacoes",
+    "title": "Lançamentos (transações)",
+    "summary": "Despesas, receitas e transferências entre contas.",
+    "keywords": ["transação", "transações", "lançamento", "despesa", "receita", "transferência", "editar", "excluir", "filtro", "mês"],
+    "blocks": [
+      { "type": "list", "items": [
+        "**Despesa**: dinheiro que sai (mercado, aluguel…).",
+        "**Receita**: dinheiro que entra (salário, freela…).",
+        "**Transferência**: dinheiro que muda de conta, como pagar a fatura do cartão com a conta corrente. Ela não conta como gasto nem como ganho."
+      ] },
+      { "type": "p", "text": "Em **Transações** você vê os lançamentos do mês, troca de mês e filtra por conta ou categoria. Toque num lançamento para editar, ou use o menu **⋯** para editar ou excluir." },
+      { "type": "example", "title": "Exemplo", "text": "Gabriel pagou a fatura de R$ 800,00 do cartão usando a conta corrente. Ele lança uma transferência \"Conta corrente → Cartão\": o saldo das duas contas muda, mas os gastos do mês não aumentam, porque cada compra no cartão já foi lançada."},
+      { "type": "tip", "text": "Excluiu sem querer? Toque em **Desfazer** no aviso que aparece logo depois." }
+    ],
+    "related": ["divisao-de-despesas", "como-desfazer-uma-exclusao", "primeira-despesa"]
+  },
+  {
+    "slug": "divisao-de-despesas",
+    "title": "Divisão de despesas",
+    "summary": "Meio a meio, proporcional à renda ou valores personalizados.",
+    "keywords": ["divisão", "dividir", "dividida", "50/50", "meio a meio", "proporcional", "renda", "personalizada", "quem pagou", "parte"],
+    "blocks": [
+      { "type": "p", "text": "No workspace do casal, toda despesa tem **quem pagou** e **como dividir**. A parte do outro vira uma dívida no acerto do casal." },
+      { "type": "h", "text": "Meio a meio" },
+      { "type": "example", "text": "Gabriel pagou R$ 100,00 no mercado, dividido meio a meio. A parte de cada um é R$ 50,00, então Ana fica devendo R$ 50,00 para Gabriel." },
+      { "type": "h", "text": "Proporcional à renda" },
+      { "type": "p", "text": "Cada um paga de acordo com o quanto ganha. Informe a renda mensal de cada um em **Mais → Workspaces e convites** (menu ⋯ → Editar renda)." },
+      { "type": "example", "text": "Gabriel ganha R$ 6.000,00 e Ana R$ 4.000,00: ele fica com 60% e ela com 40%. Num mercado de R$ 100,00 pago por Gabriel, a parte de Ana é R$ 40,00, e é isso que ela fica devendo." },
+      { "type": "tip", "text": "Se faltar a renda de alguém, o app divide meio a meio e avisa." },
+      { "type": "h", "text": "Personalizada" },
+      { "type": "p", "text": "Você digita quanto é a parte de cada um. A soma precisa dar o valor total." },
+      { "type": "example", "text": "Jantar de R$ 120,00 pago por Ana, em que Gabriel pediu o prato mais caro: R$ 70,00 para ele e R$ 50,00 para ela. Gabriel fica devendo R$ 70,00 para Ana." },
+      { "type": "h", "text": "Sem divisão" },
+      { "type": "p", "text": "A despesa fica toda para quem pagou, e ninguém deve nada." }
+    ],
+    "related": ["acerto-do-casal", "por-que-nao-consigo-editar-o-valor"]
+  },
+  {
+    "slug": "acerto-do-casal",
+    "title": "Acerto do casal",
+    "summary": "Quem deve quanto para quem, somando todas as despesas divididas.",
+    "keywords": ["acerto", "acertar", "dívida", "deve", "dever", "pagar", "pix", "quites", "saldo do casal", "casal"],
+    "blocks": [
+      { "type": "p", "text": "A tela **Casal** soma todas as despesas divididas, de todos os meses, e mostra o resultado numa frase só: quem deve quanto para quem." },
+      { "type": "example", "title": "Exemplo", "text": "Gabriel pagou R$ 100,00 no mercado (meio a meio): Ana deve R$ 50,00. Depois, Ana pagou R$ 30,00 na farmácia (meio a meio): Gabriel deve R$ 15,00. As duas dívidas se compensam, e a tela mostra \"Ana deve R$ 35,00 para Gabriel\"." },
+      { "type": "h", "text": "Registrar um pagamento" },
+      { "type": "steps", "items": [
+        "Ana manda um Pix de R$ 35,00 para Gabriel.",
+        "Na tela Casal, alguém toca em **Registrar acerto** (o valor já vem preenchido).",
+        "Pronto: vocês ficam quites."
+      ] },
+      { "type": "list", "items": [
+        "Pode ser um **acerto parcial**: pague só uma parte, e o resto continua em aberto.",
+        "O acerto **não mexe no saldo das contas**. Ele só anota que a dívida foi paga.",
+        "Editou ou excluiu uma despesa dividida? O acerto é **recalculado na hora**.",
+        "Errou um acerto? Edite ou exclua pelo menu ⋯ no histórico."
+      ] }
+    ],
+    "related": ["divisao-de-despesas", "como-funciona-o-acerto"]
+  },
+  {
+    "slug": "recorrencias",
+    "title": "Recorrências",
+    "summary": "Contas fixas e salários que se lançam sozinhos na data certa.",
+    "keywords": ["recorrência", "recorrente", "fixa", "mensal", "semanal", "anual", "aluguel", "assinatura", "netflix", "salário", "automático", "pausar"],
+    "blocks": [
+      { "type": "p", "text": "Cadastre uma vez e o app lança sozinho: aluguel, internet, academia, assinaturas, salário. Vá em **Mais → Recorrências → Nova recorrência**." },
+      { "type": "list", "items": [
+        "Frequência **semanal**, **mensal** ou **anual**, a partir do **primeiro lançamento**.",
+        "Opcional: uma data de fim (\"último lançamento até\").",
+        "Os lançamentos são criados quando alguém **abre o app** na data ou depois dela.",
+        "No workspace do casal, dá para dividir meio a meio ou proporcional à renda."
+      ] },
+      { "type": "example", "title": "Exemplo", "text": "Aluguel de R$ 2.000,00 todo dia 5, pago por Gabriel e dividido meio a meio. No dia 5, quando um dos dois abre o app, a despesa aparece em Transações, e Ana passa a dever R$ 1.000,00 no acerto." },
+      { "type": "h", "text": "Pausar, editar e excluir" },
+      { "type": "list", "items": [
+        "**Pausar** interrompe os lançamentos. Ao retomar, o período pausado não é lançado de uma vez.",
+        "Mudou o dia ou a frequência? A nova regra vale de hoje em diante.",
+        "**Excluir** a recorrência não apaga os lançamentos que ela já criou.",
+        "Se a conta ou a categoria da recorrência for arquivada, ela é pausada automaticamente."
+      ] }
+    ],
+    "related": ["recorrencia-nao-gerou", "divisao-de-despesas"]
+  },
+  {
+    "slug": "metas",
+    "title": "Metas",
+    "summary": "Um cofrinho para juntar dinheiro até um valor, com ou sem prazo.",
+    "keywords": ["meta", "metas", "objetivo", "guardar", "economizar", "aporte", "aportar", "resgate", "resgatar", "prazo", "cofrinho"],
+    "blocks": [
+      { "type": "p", "text": "Uma meta diz **quanto** vocês querem juntar e, se quiserem, **até quando**. Crie em **Mais → Metas → Nova meta**." },
+      { "type": "list", "items": [
+        "**Aportar**: anotar que vocês guardaram um valor.",
+        "**Resgatar**: anotar que tiraram dinheiro da meta. Não dá para resgatar mais do que tem.",
+        "Com prazo, o app mostra **quanto falta guardar por mês**."
+      ] },
+      { "type": "example", "title": "Exemplo", "text": "Meta \"Viagem\" de R$ 6.000,00 até dezembro. Em julho já há R$ 3.000,00 guardados: contando julho, faltam 6 meses, e o app mostra \"Faltam R$ 3.000,00: R$ 500,00 por mês\"." },
+      { "type": "tip", "text": "Aportes e resgates **não mexem no saldo das contas**: eles só acompanham quanto já foi separado." }
+    ],
+    "related": ["metas-mexem-no-saldo", "quadro-dos-sonhos"]
+  },
+  {
+    "slug": "quadro-dos-sonhos",
+    "title": "Quadro dos Sonhos",
+    "summary": "Sonhando → Planejando (com meta) → Realizado.",
+    "keywords": ["sonho", "sonhos", "quadro", "desejo", "realizado", "planejando", "sonhando", "foto", "reação", "sonho da semana", "organizar"],
+    "blocks": [
+      { "type": "p", "text": "O Quadro dos Sonhos guarda o que vocês querem viver: uma viagem, a casa própria, um pet. Toque em **Novo sonho**, dê um título, escolha uma foto, a categoria e o prazo (de \"Curto prazo\" até \"Algum dia\"). O sonho pode ser **Meu**, do seu par ou **Nosso**." },
+      { "type": "h", "text": "O ciclo de um sonho" },
+      { "type": "steps", "items": [
+        "**Sonhando**: a ideia está no quadro, sem compromisso.",
+        "**Planejando**: abra o sonho e toque em **Transformar em meta**. Uma meta é criada e o progresso dela aparece no card.",
+        "**Realizado**: quando acontecer, toque em **Marcar como realizado**, escolha a data e, se quiser, a **foto do momento**. Tem confete! 🎉"
+      ] },
+      { "type": "example", "title": "Exemplo", "text": "Gabriel e Ana colocam \"Conhecer o Japão\" no quadro. Um ano depois, transformam em meta de R$ 20.000,00 e vão aportando. Quando voltam da viagem, marcam como realizado com uma foto em Kyoto." },
+      { "type": "list", "items": [
+        "No workspace do casal, dá para reagir aos sonhos do outro: ❤️ (amei) e 🙋 (eu também quero).",
+        "O **Sonho da semana** aparece no início para lembrar vocês do que importa.",
+        "Use **Organizar** para arrastar os sonhos na ordem que preferirem.",
+        "Se a meta for excluída, o sonho volta para Sonhando."
+      ] }
+    ],
+    "related": ["metas"]
+  }
+]

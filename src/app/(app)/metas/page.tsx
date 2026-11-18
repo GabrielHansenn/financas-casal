@@ -3,6 +3,7 @@ import { PlusIcon, TargetIcon } from "lucide-react";
 import { Suspense } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
+import { HelpButton } from "@/features/help/components/help-button";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GoalCard } from "@/features/goals/components/goal-card";
@@ -15,7 +16,11 @@ export const metadata: Metadata = { title: "Metas" };
 export default function GoalsPage() {
   return (
     <>
-      <PageHeader title="Metas" description="Guardem dinheiro para um objetivo e acompanhem o progresso." />
+      <PageHeader
+        title="Metas"
+        description="Guardem dinheiro para um objetivo e acompanhem o progresso."
+        actions={<HelpButton topic="goals" />}
+      />
       <Suspense fallback={<GoalsSkeleton />}>
         <GoalsContent />
       </Suspense>

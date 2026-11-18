@@ -1,0 +1,58 @@
+[
+  {
+    "slug": "criar-conta",
+    "title": "Criar sua conta",
+    "summary": "Cadastro em um minuto e o que já vem pronto para você.",
+    "keywords": ["cadastro", "cadastrar", "começar", "registrar", "senha", "email", "login", "entrar", "link mágico"],
+    "blocks": [
+      { "type": "steps", "items": [
+        "Toque em **Criar conta** na tela de entrada.",
+        "Informe seu nome, seu email e uma senha.",
+        "Abra o email de confirmação e toque no link. Sem confirmar o email você não consegue aceitar convites."
+      ] },
+      { "type": "p", "text": "Pronto! O Adois já cria para você um **workspace pessoal** chamado \"Pessoal\", com uma conta (\"Conta principal\") e categorias comuns, como Mercado, Moradia, Transporte e Salário. Dá para começar a lançar na hora." },
+      { "type": "tip", "text": "Prefere não usar senha? Na tela de entrada, use a aba **Link por email**: você recebe um link de acesso e entra sem senha." }
+    ],
+    "related": ["convidar-parceiro", "workspaces"]
+  },
+  {
+    "slug": "convidar-parceiro",
+    "title": "Convidar seu par",
+    "summary": "Crie o workspace do casal e mande o convite por email ou WhatsApp.",
+    "keywords": ["convite", "convidar", "parceira", "parceiro", "namorada", "namorado", "esposa", "marido", "casal", "compartilhar", "whatsapp"],
+    "blocks": [
+      { "type": "p", "text": "As despesas da casa ficam num **workspace do casal**, separado do seu pessoal." },
+      { "type": "steps", "items": [
+        "Vá em **Mais → Workspaces e convites**.",
+        "Em \"Criar o workspace do casal\", dê um nome (ex.: \"Casa\") e toque em **Criar workspace compartilhado**.",
+        "No card do workspace, informe o email do seu par e toque em **Convidar**.",
+        "O convite chega por email. Se preferir, copie o link ou mande pelo **WhatsApp**.",
+        "Seu par abre o link, entra (ou cria a conta) **com o mesmo email do convite** e toca em **Aceitar convite**."
+      ] },
+      { "type": "list", "items": [
+        "O convite vale por **7 dias**. Se expirar, é só convidar de novo.",
+        "Quem cria o workspace é o **dono**: só ele convida, remove pessoas, renomeia e exclui o workspace."
+      ] },
+      { "type": "tip", "text": "Para trocar entre o pessoal e o do casal, use o seletor de workspace: no topo da tela no celular, ou na barra lateral no computador." }
+    ],
+    "related": ["workspaces", "primeira-despesa"]
+  },
+  {
+    "slug": "primeira-despesa",
+    "title": "Lançar a primeira despesa",
+    "summary": "Valor, categoria, Salvar: três toques e pronto.",
+    "keywords": ["lançar", "lançamento", "despesa", "gasto", "adicionar", "novo", "registrar", "compra"],
+    "blocks": [
+      { "type": "steps", "items": [
+        "Toque no botão **+** (Novo lançamento).",
+        "Digite o valor. O teclado numérico já abre sozinho.",
+        "Toque numa categoria, por exemplo **Mercado**.",
+        "Toque em **Salvar**."
+      ] },
+      { "type": "p", "text": "O resto já vem preenchido: despesa, data de hoje, a última conta que você usou e, no workspace do casal, \"você pagou\" e divisão **meio a meio**. Mude só o que for diferente." },
+      { "type": "example", "title": "Exemplo", "text": "Gabriel pagou R$ 100,00 no mercado com o cartão. Ele toca em +, digita 100, escolhe Mercado e salva. Como a divisão é meio a meio, o app anota que Ana deve R$ 50,00 para ele." },
+      { "type": "tip", "text": "Errou? Logo depois de salvar aparece **Desfazer**. Depois disso, toque no lançamento para editar ou use o menu ⋯." }
+    ],
+    "related": ["transacoes", "divisao-de-despesas"]
+  }
+]

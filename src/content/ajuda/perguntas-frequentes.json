@@ -1,0 +1,170 @@
+[
+  {
+    "slug": "como-excluir-uma-conta",
+    "title": "Como excluo uma conta (bancária, cartão, dinheiro)?",
+    "summary": "Menu ⋯ da conta → Excluir. Se ela tiver lançamentos, você escolhe o que fazer com eles.",
+    "keywords": ["excluir conta", "apagar conta", "remover conta", "deletar", "cartão", "banco", "mover lançamentos"],
+    "blocks": [
+      { "type": "steps", "items": [
+        "Vá em **Mais → Contas**.",
+        "Toque no **⋯** ao lado da conta e escolha **Excluir**."
+      ] },
+      { "type": "list", "items": [
+        "**Sem lançamentos**: a conta é excluída na hora.",
+        "**Com lançamentos ou recorrências**: o app mostra quantos são e oferece **arquivar** (recomendado) ou **mover os lançamentos para outra conta** e então excluir."
+      ] },
+      { "type": "example", "title": "Exemplo", "text": "Gabriel trocou de banco. A conta \"Banco antigo\" tem 23 lançamentos. Ele escolhe mover tudo para \"Nubank\" e excluir. As transferências que existiam entre as duas contas são apagadas, porque virariam uma transferência do Nubank para ele mesmo, e o app avisa antes." },
+      { "type": "tip", "text": "Quer só tirar a conta da frente, sem mexer no histórico? Use **Arquivar**." }
+    ],
+    "related": ["o-que-e-arquivar", "contas", "como-excluir-minha-conta"]
+  },
+  {
+    "slug": "o-que-e-arquivar",
+    "title": "O que é arquivar?",
+    "summary": "Esconder sem apagar: some das listas e seletores, mas o histórico continua.",
+    "keywords": ["arquivar", "arquivada", "arquivado", "esconder", "ocultar", "restaurar", "desarquivar"],
+    "blocks": [
+      { "type": "p", "text": "Arquivar é a forma segura de \"tirar da frente\" uma conta, categoria ou meta que você não usa mais." },
+      { "type": "list", "items": [
+        "Ela **some dos seletores** na hora de lançar.",
+        "Os **lançamentos antigos continuam** com ela, e os relatórios não mudam.",
+        "O **saldo** de uma conta arquivada continua contando no saldo total do início.",
+        "Recorrências que usam uma conta ou categoria arquivada são **pausadas**.",
+        "Dá para **restaurar** quando quiser, na seção Arquivadas (menu ⋯ → Restaurar; nas metas, Desarquivar)."
+      ] },
+      { "type": "example", "title": "Exemplo", "text": "Ana cancelou um cartão de crédito. Ela arquiva o cartão: ele não aparece mais quando ela lança, mas as compras antigas continuam em Transações." }
+    ],
+    "related": ["como-excluir-uma-conta", "excluir-categoria"]
+  },
+  {
+    "slug": "meu-par-ve-meus-gastos-pessoais",
+    "title": "Meu par vê meus gastos pessoais?",
+    "summary": "Não. O que está no seu workspace pessoal só você vê.",
+    "keywords": ["privacidade", "privado", "pessoal", "ver", "parceira", "parceiro", "segredo", "esconder", "acesso"],
+    "blocks": [
+      { "type": "p", "text": "**Não.** Seu workspace pessoal é só seu: ninguém mais pode entrar nele, nem por convite." },
+      { "type": "p", "text": "No **workspace do casal**, os dois veem tudo o que é lançado lá dentro: lançamentos, contas, metas e sonhos." },
+      { "type": "tip", "text": "Antes de lançar, confira qual workspace está ativo no seletor. O mesmo gasto vai para um lugar ou para o outro, nunca para os dois." }
+    ],
+    "related": ["workspaces"]
+  },
+  {
+    "slug": "como-funciona-o-acerto",
+    "title": "Como funciona o acerto?",
+    "summary": "O app soma as despesas divididas e diz quem deve quanto. Pagou? Registre o acerto.",
+    "keywords": ["acerto", "dívida", "quem deve", "pix", "quites", "pagar de volta", "reembolso"],
+    "blocks": [
+      { "type": "p", "text": "Toda vez que alguém paga uma despesa dividida, a parte do outro vira dívida. A tela **Casal** junta tudo num número só." },
+      { "type": "example", "title": "Exemplo", "text": "Gabriel pagou R$ 100,00 no mercado, dividido 50/50. Ana deve R$ 50,00. Ela faz um Pix de R$ 50,00, alguém toca em Registrar acerto, e os dois ficam quites." },
+      { "type": "p", "text": "O acerto não mexe no saldo das contas: ele só anota o pagamento entre vocês." }
+    ],
+    "related": ["acerto-do-casal", "divisao-de-despesas"]
+  },
+  {
+    "slug": "como-sair-de-um-workspace",
+    "title": "Como saio de um workspace?",
+    "summary": "Em Workspaces e convites → Sair do workspace. O dono precisa passar o workspace antes.",
+    "keywords": ["sair", "deixar", "workspace", "separar", "término", "remover", "dono", "transferir"],
+    "blocks": [
+      { "type": "steps", "items": [
+        "Vá em **Mais → Workspaces e convites**.",
+        "No card do workspace do casal, toque em **Sair do workspace**."
+      ] },
+      { "type": "p", "text": "**Se você é o dono**, primeiro torne a outra pessoa dona: menu ⋯ ao lado do nome dela → **Tornar dono**. Depois disso, o botão Sair aparece. Se você está sozinho no workspace, a saída é excluí-lo." },
+      { "type": "h", "text": "O que acontece com os dados" },
+      { "type": "list", "items": [
+        "Os lançamentos que você fez **continuam** no workspace, e o acerto continua contando com você. Dá para registrar o acerto final mesmo depois da saída.",
+        "Contas e sonhos que eram seus passam a ser do casal.",
+        "Recorrências pagas por você são pausadas.",
+        "Seu workspace pessoal não muda."
+      ] }
+    ],
+    "related": ["workspaces", "por-que-nao-consigo-editar-o-valor"]
+  },
+  {
+    "slug": "como-excluir-minha-conta",
+    "title": "Como excluo minha conta do Adois?",
+    "summary": "Em Mais → Excluir conta. Seus dados pessoais são apagados.",
+    "keywords": ["excluir minha conta", "apagar conta", "cancelar", "deletar", "lgpd", "dados pessoais", "privacidade", "sair do app"],
+    "blocks": [
+      { "type": "steps", "items": [
+        "Vá em **Mais** e role até **Excluir conta**.",
+        "Toque em **Excluir minha conta**, confira a lista do que vai acontecer e digite **EXCLUIR** para confirmar."
+      ] },
+      { "type": "list", "items": [
+        "Seu **workspace pessoal** é apagado, com contas, lançamentos, metas, sonhos e fotos.",
+        "Um workspace do casal em que só você está também é apagado.",
+        "Se seu par continua no workspace do casal, ele continua existindo. Se você era o dono, seu par passa a ser.",
+        "Lá, seus lançamentos ficam com o nome **\"Ex-membro\"**, para o acerto continuar certo para quem ficou.",
+        "Seu nome, email e login são apagados. Isso não pode ser desfeito."
+      ] }
+    ],
+    "related": ["como-sair-de-um-workspace"]
+  },
+  {
+    "slug": "como-desfazer-uma-exclusao",
+    "title": "Excluí sem querer. Dá para desfazer?",
+    "summary": "Para lançamentos, acertos e movimentações de meta: toque em Desfazer logo depois.",
+    "keywords": ["desfazer", "voltar", "recuperar", "restaurar", "apaguei", "sem querer", "errado"],
+    "blocks": [
+      { "type": "p", "text": "Ao excluir um **lançamento**, um **acerto** ou um **aporte/resgate**, aparece um aviso com o botão **Desfazer** por alguns segundos. Toque nele e o item volta exatamente como era, com a mesma divisão." },
+      { "type": "p", "text": "Contas, categorias, metas, sonhos e workspaces não têm Desfazer. Por isso o app pede confirmação e mostra o que vai ser apagado antes." }
+    ],
+    "related": ["o-que-e-arquivar"]
+  },
+  {
+    "slug": "por-que-nao-consigo-editar-o-valor",
+    "title": "Por que não consigo mudar o valor de uma despesa dividida?",
+    "summary": "Quando a despesa envolve alguém que saiu do workspace, valor e divisão ficam travados.",
+    "keywords": ["editar", "valor", "travado", "bloqueado", "não consigo", "ex-membro", "saiu", "divisão"],
+    "blocks": [
+      { "type": "p", "text": "Se a despesa foi paga ou dividida com alguém que **saiu do workspace**, não dá para recalcular a divisão sem essa pessoa. Para o acerto continuar certo, o **valor** e a **divisão** ficam como estão." },
+      { "type": "p", "text": "Descrição, data, conta e categoria continuam editáveis." }
+    ],
+    "related": ["como-sair-de-um-workspace", "acerto-do-casal"]
+  },
+  {
+    "slug": "recorrencia-nao-gerou",
+    "title": "Minha recorrência não lançou. Por quê?",
+    "summary": "Ela lança quando alguém abre o app, e não lança se estiver pausada.",
+    "keywords": ["recorrência", "não lançou", "não gerou", "faltou", "automático", "pausada", "atrasada"],
+    "blocks": [
+      { "type": "list", "items": [
+        "Os lançamentos são criados quando **alguém abre o app** na data ou depois dela. Abriu e não apareceu? Confira o mês em Transações.",
+        "Ela pode estar **pausada**. Em Recorrências, o aviso diz o motivo, por exemplo \"Pausada · conta arquivada\".",
+        "A conta ou a categoria foi arquivada? Restaure, ou edite a recorrência para usar outra, e toque em **Retomar**.",
+        "Quem pagava saiu do workspace? Edite a recorrência e escolha outra pessoa."
+      ] }
+    ],
+    "related": ["recorrencias"]
+  },
+  {
+    "slug": "metas-mexem-no-saldo",
+    "title": "Aportar numa meta tira dinheiro da conta?",
+    "summary": "Não. Metas só acompanham quanto vocês separaram.",
+    "keywords": ["meta", "aporte", "saldo", "conta", "dinheiro", "poupança", "guardar"],
+    "blocks": [
+      { "type": "p", "text": "Não. Aportes e resgates são anotações: mostram quanto já foi separado para a meta, mas não mudam o saldo das contas." },
+      { "type": "tip", "text": "Se você guarda o dinheiro da meta numa poupança, crie a poupança como conta e lance uma **transferência** para ela. Depois, registre o aporte na meta." }
+    ],
+    "related": ["metas"]
+  },
+  {
+    "slug": "excluir-categoria",
+    "title": "Como excluo uma categoria?",
+    "summary": "Menu ⋯ → Excluir. Com lançamentos, você escolhe mover, deixar sem categoria ou arquivar.",
+    "keywords": ["excluir categoria", "apagar categoria", "remover categoria", "mover", "sem categoria"],
+    "blocks": [
+      { "type": "steps", "items": [
+        "Vá em **Mais → Categorias**.",
+        "Toque no **⋯** ao lado da categoria e escolha **Excluir**."
+      ] },
+      { "type": "list", "items": [
+        "**Sem lançamentos**: a categoria é excluída na hora.",
+        "**Com lançamentos**: arquive (recomendado), mova tudo para outra categoria do mesmo tipo, ou deixe os lançamentos sem categoria."
+      ] },
+      { "type": "example", "title": "Exemplo", "text": "Ana tinha as categorias \"Restaurante\" e \"Alimentação\" e quer só uma. Ela exclui Restaurante movendo os lançamentos para Alimentação. O gráfico do mês passa a mostrar tudo junto." }
+    ],
+    "related": ["categorias", "o-que-e-arquivar"]
+  }
+]
