@@ -11,7 +11,7 @@ export default function GlobalError({ retry }: { error: unknown; retry: () => vo
           minHeight: "100dvh",
           display: "grid",
           placeItems: "center",
-          fontFamily: "system-ui, sans-serif",
+          fontFamily: "Montserrat, system-ui, sans-serif",
           colorScheme: "light dark",
           textAlign: "center",
           padding: "1.5rem",
