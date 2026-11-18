@@ -18,9 +18,12 @@ export const goalInputSchema = z.object({
 });
 
 export const contributionInputSchema = z.object({
+  id: z.guid().optional(),
   goalId: z.guid(),
   kind: z.enum(["deposit", "withdrawal"]),
   amountCents: positiveCents,
   date: isoDate,
   note: z.string().trim().max(200, { error: "Observação muito longa." }).optional(),
 });
+
+export type ContributionInput = z.infer<typeof contributionInputSchema>;

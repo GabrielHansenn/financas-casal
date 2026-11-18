@@ -5,7 +5,7 @@ import { z } from "@/lib/zod";
 import { formatBRL } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceContext } from "@/features/workspaces/active-workspace";
-import { contributionInputSchema, goalInputSchema } from "./schemas";
+import { contributionInputSchema, goalInputSchema, type ContributionInput } from "./schemas";
 
 type Result = { ok: true } | { ok: false; error: string };
 
@@ -57,12 +57,17 @@ export async function deleteGoal(id: string): Promise<Result> {
   await getWorkspaceContext();
   const supabase = await createClient();
   const { data, error } = await supabase.from("goals").delete().eq("id", parsed.data).select("id");
-  if (error || !data?.length) return { ok: false, error: "Não foi possível excluir a meta." };
+  if (error) {
+    console.error("[goals] delete", error.code, error.message);
+    return { ok: false, error: "Não foi possível excluir a meta." };
+  }
+  if (!data.length) return { ok: false, error: "Meta não encontrada." };
   refresh();
   return { ok: true };
 }
 
-export async function addContribution(raw: unknown): Promise<Result> {
+/** Records a deposit/withdrawal, or edits one when `id` is given. */
+export async function saveContribution(raw: unknown): Promise<Result> {
   const parsed = contributionInputSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
   const input = parsed.data;
@@ -79,13 +84,18 @@ export async function addContribution(raw: unknown): Promise<Result> {
   if (goal.archived_at) return { ok: false, error: "Desarquive a meta para movimentá-la." };
 
   const amount = input.kind === "withdrawal" ? -input.amountCents : input.amountCents;
-  const { error } = await supabase.from("goal_contributions").insert({
-    goal_id: goal.id,
-    workspace_id: goal.workspace_id,
-    amount_cents: amount,
-    date: input.date,
-    note: input.note || null,
-  });
+  const values = { amount_cents: amount, date: input.date, note: input.note || null };
+  const { data, error } = input.id
+    ? await supabase
+        .from("goal_contributions")
+        .update(values)
+        .eq("id", input.id)
+        .eq("goal_id", goal.id)
+        .select("id")
+    : await supabase
+        .from("goal_contributions")
+        .insert({ ...values, goal_id: goal.id, workspace_id: goal.workspace_id })
+        .select("id");
 
   if (error) {
     // 23514: the database guard rejects a balance below zero (also under concurrent withdrawals)
@@ -97,22 +107,32 @@ export async function addContribution(raw: unknown): Promise<Result> {
         .maybeSingle();
       return {
         ok: false,
-        error: `Não dá para resgatar mais do que tem na meta (${formatBRL(progress?.current_cents ?? 0)}).`,
+        error: input.id
+          ? "Com essa mudança a meta ficaria negativa: parte desse aporte já foi resgatada."
+          : `Não dá para resgatar mais do que tem na meta (${formatBRL(progress?.current_cents ?? 0)}).`,
       };
     }
     console.error("[goals] contribution", error.code, error.message);
     return { ok: false, error: "Não foi possível registrar. Tente novamente." };
   }
+  if (data.length === 0) return { ok: false, error: "Movimentação não encontrada." };
   refresh();
   return { ok: true };
 }
 
-export async function deleteContribution(id: string): Promise<Result> {
+/** Deletes a deposit/withdrawal and returns it, so "Desfazer" can record it again. */
+export async function deleteContribution(
+  id: string,
+): Promise<{ ok: true; snapshot: ContributionInput | null } | { ok: false; error: string }> {
   const parsed = z.guid().safeParse(id);
   if (!parsed.success) return { ok: false, error: "Movimentação inválida." };
   await getWorkspaceContext();
   const supabase = await createClient();
-  const { data, error } = await supabase.from("goal_contributions").delete().eq("id", parsed.data).select("id");
+  const { data, error } = await supabase
+    .from("goal_contributions")
+    .delete()
+    .eq("id", parsed.data)
+    .select("goal_id, amount_cents, date, note");
   if (error) {
     if (error.code === "23514") {
       return { ok: false, error: "Esse aporte já foi resgatado. Exclua o resgate antes." };
@@ -120,7 +140,17 @@ export async function deleteContribution(id: string): Promise<Result> {
     console.error("[goals] delete contribution", error.code, error.message);
     return { ok: false, error: "Não foi possível excluir." };
   }
-  if (!data.length) return { ok: false, error: "Movimentação não encontrada." };
+  const row = data[0];
+  if (!row) return { ok: false, error: "Movimentação não encontrada." };
   refresh();
-  return { ok: true };
+  return {
+    ok: true,
+    snapshot: {
+      goalId: row.goal_id,
+      kind: row.amount_cents < 0 ? "withdrawal" : "deposit",
+      amountCents: Math.abs(row.amount_cents),
+      date: row.date,
+      note: row.note ?? undefined,
+    },
+  };
 }

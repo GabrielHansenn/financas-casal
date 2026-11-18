@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DeleteSettlementButton } from "@/features/settlements/components/delete-settlement-button";
+import { SettlementMenu } from "@/features/settlements/components/settlement-menu";
 import { SettlementDialog } from "@/features/settlements/components/settlement-dialog";
 import { getSettlementData, SETTLEMENT_HISTORY_LIMIT } from "@/features/settlements/queries";
 import { getWorkspaceContext } from "@/features/workspaces/active-workspace";
@@ -61,7 +61,8 @@ async function CoupleContent() {
   // Sentence-case name: "Você" at the start of a sentence, "você" elsewhere
   const subject = (userId: string) => (isMe(userId) ? "Você" : (person(userId)?.displayName ?? "Ex-membro"));
   const object = (userId: string) => (isMe(userId) ? "você" : (person(userId)?.displayName ?? "ex-membro"));
-  const canSettle = (fromId: string, toId: string) => !!person(fromId)?.isMember && !!person(toId)?.isMember;
+  // A former member with a balance can still settle up with someone who is still here
+  const canSettle = (fromId: string, toId: string) => !!person(fromId)?.isMember || !!person(toId)?.isMember;
 
   if (members.length < 2 && data.ledger.length === 0) {
     return (
@@ -106,7 +107,7 @@ async function CoupleContent() {
                   {canSettle(t.fromUserId, t.toUserId) ? (
                     <SettlementDialog
                       workspaceId={active.id}
-                      members={members}
+                      members={data.people}
                       currentUserId={user.id}
                       today={today}
                       suggestion={t}
@@ -119,7 +120,7 @@ async function CoupleContent() {
                   ) : (
                     <p className="flex items-start gap-1.5 text-xs text-amber-600 dark:text-amber-400">
                       <TriangleAlertIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-                      Essa pessoa saiu do workspace, então o acerto precisa ser combinado fora do app.
+                      As duas pessoas saíram do workspace, então o acerto precisa ser combinado fora do app.
                     </p>
                   )}
                 </li>
@@ -198,7 +199,7 @@ async function CoupleContent() {
           {members.length >= 2 ? (
             <SettlementDialog
               workspaceId={active.id}
-              members={members}
+              members={data.people}
               currentUserId={user.id}
               today={today}
               trigger={
@@ -217,7 +218,7 @@ async function CoupleContent() {
               {data.history.map((s) => {
                 const label = `${subject(s.fromUserId)} pagou ${formatBRL(s.amountCents)} para ${object(s.toUserId)}`;
                 return (
-                  <li key={s.id} className="flex items-center gap-3 py-3">
+                  <li key={s.id} className="flex items-center gap-3 py-2">
                     <span className="grid min-w-0 flex-1 gap-0.5">
                       <span className="text-sm">
                         {subject(s.fromUserId)} pagou{" "}
@@ -229,7 +230,14 @@ async function CoupleContent() {
                         {s.note ? ` · ${s.note}` : ""}
                       </span>
                     </span>
-                    <DeleteSettlementButton id={s.id} label={label} />
+                    <SettlementMenu
+                      settlement={s}
+                      label={label}
+                      workspaceId={active.id}
+                      people={data.people}
+                      currentUserId={user.id}
+                      today={today}
+                    />
                   </li>
                 );
               })}

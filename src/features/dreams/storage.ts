@@ -22,19 +22,27 @@ export async function signDreamImages(supabase: Supabase, paths: string[]): Prom
   );
 }
 
-/** Removes every file of one dream ({workspace}/{dream}/*). Best effort: logs and continues. */
-export async function removeDreamFolder(supabase: Supabase, workspaceId: string, dreamId: string): Promise<void> {
-  const bucket = supabase.storage.from(DREAM_IMAGES_BUCKET);
+/** Paths of every file of one dream ({workspace}/{dream}/*). Needs the dream row to exist. */
+export async function listDreamFolder(supabase: Supabase, workspaceId: string, dreamId: string): Promise<string[]> {
   const folder = `${workspaceId}/${dreamId}`;
-  const { data, error } = await bucket.list(folder, { limit: 1000 });
+  const { data, error } = await supabase.storage.from(DREAM_IMAGES_BUCKET).list(folder, { limit: 1000 });
   if (error) {
     console.error("[dreams] list folder", folder, error.message);
-    return;
+    return [];
   }
-  const files = data.filter((f) => f.id !== null).map((f) => `${folder}/${f.name}`);
-  if (files.length === 0) return;
-  const { error: removeError } = await bucket.remove(files);
-  if (removeError) console.error("[dreams] remove folder", folder, removeError.message);
+  return data.filter((f) => f.id !== null).map((f) => `${folder}/${f.name}`);
+}
+
+/** Removes the given files. Best effort: logs and continues. */
+export async function removeDreamFiles(supabase: Supabase, paths: string[]): Promise<void> {
+  if (paths.length === 0) return;
+  const { error } = await supabase.storage.from(DREAM_IMAGES_BUCKET).remove(paths);
+  if (error) console.error("[dreams] remove files", error.message);
+}
+
+/** Removes every file of one dream ({workspace}/{dream}/*). Best effort: logs and continues. */
+export async function removeDreamFolder(supabase: Supabase, workspaceId: string, dreamId: string): Promise<void> {
+  await removeDreamFiles(supabase, await listDreamFolder(supabase, workspaceId, dreamId));
 }
 
 /** Removes all dream images of a workspace (used before deleting the workspace). */

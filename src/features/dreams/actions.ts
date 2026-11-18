@@ -8,7 +8,7 @@ import { getWorkspaceContext } from "@/features/workspaces/active-workspace";
 import { isDreamImagePath } from "./board";
 import { isValidAchievedDate, statusAfterUndo } from "./lifecycle";
 import { achieveDreamSchema, convertDreamSchema, dreamImageInputSchema, dreamInputSchema } from "./schemas";
-import { removeDreamFile, removeDreamFolder } from "./storage";
+import { listDreamFolder, removeDreamFile, removeDreamFiles } from "./storage";
 
 type Result = { ok: true } | { ok: false; error: string };
 export type CreateDreamResult = { ok: true; id: string; workspaceId: string } | { ok: false; error: string };
@@ -135,7 +135,11 @@ export async function removeDreamImage(dreamId: string, kind: "cover" | "achieve
   return { ok: true };
 }
 
-/** Deletes the dream and its images (files first: after the row is gone the folder can't be listed). */
+/**
+ * Deletes the dream, then its images. The row goes first so a failed delete never leaves a
+ * dream pointing to removed files. The folder is listed before that (listing needs the row);
+ * removing files afterwards only needs membership (storage policy).
+ */
 export async function deleteDream(id: string): Promise<Result> {
   const parsed = z.guid().safeParse(id);
   if (!parsed.success) return { ok: false, error: "Sonho inválido." };
@@ -145,12 +149,15 @@ export async function deleteDream(id: string): Promise<Result> {
   const { data: dream } = await supabase.from("dreams").select("id, workspace_id").eq("id", parsed.data).maybeSingle();
   if (!dream) return { ok: false, error: "Sonho não encontrado." };
 
-  await removeDreamFolder(supabase, dream.workspace_id, dream.id);
+  const files = await listDreamFolder(supabase, dream.workspace_id, dream.id);
   const { data, error } = await supabase.from("dreams").delete().eq("id", dream.id).select("id");
-  if (error || !data.length) {
-    if (error) console.error("[dreams] delete", error.code, error.message);
+  if (error) {
+    console.error("[dreams] delete", error.code, error.message);
     return { ok: false, error: "Não foi possível excluir o sonho." };
   }
+  if (!data.length) return { ok: false, error: "Sonho não encontrado." };
+
+  await removeDreamFiles(supabase, files);
   refresh();
   return { ok: true };
 }

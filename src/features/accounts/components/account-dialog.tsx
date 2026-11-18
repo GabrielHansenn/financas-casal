@@ -31,18 +31,28 @@ export function AccountDialog({
   members,
   account,
   trigger,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   workspaceId: string;
   /** Members of a shared workspace (empty for personal), to choose the account owner */
   members: { userId: string; displayName: string }[];
   account?: ManagedAccount;
-  trigger: ReactElement;
+  /** Opens the dialog; omit it and use `open`/`onOpenChange` to control it (e.g. from an ItemMenu) */
+  trigger?: ReactElement;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = (next: boolean) => {
+    setUncontrolledOpen(next);
+    onOpenChange?.(next);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger} />
+      {trigger ? <DialogTrigger render={trigger} /> : null}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{account ? "Editar conta" : "Nova conta"}</DialogTitle>

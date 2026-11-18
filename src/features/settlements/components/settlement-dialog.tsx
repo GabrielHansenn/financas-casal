@@ -18,9 +18,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL } from "@/lib/money";
 import type { Transfer } from "@/lib/settlement";
-import { createSettlement } from "../actions";
+import { saveSettlement } from "../actions";
+import type { SettlementRecord } from "../queries";
 
-type Person = { userId: string; displayName: string };
+type Person = { userId: string; displayName: string; isMember?: boolean };
 
 export function SettlementDialog({
   workspaceId,
@@ -28,25 +29,40 @@ export function SettlementDialog({
   currentUserId,
   today,
   suggestion,
+  settlement,
   trigger,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   workspaceId: string;
-  /** Current members only: the database rejects settlements with former members */
+  /**
+   * Members, plus former members who still have a balance here (isMember: false).
+   * The database requires at least one side to be a current member.
+   */
   members: Person[];
   currentUserId: string;
   today: string;
   /** Prefills the form with a suggested payment (the open debt) */
   suggestion?: Transfer;
-  trigger: ReactElement;
+  /** Existing settlement to edit */
+  settlement?: SettlementRecord;
+  trigger?: ReactElement;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = (next: boolean) => {
+    setUncontrolledOpen(next);
+    onOpenChange?.(next);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger} />
+      {trigger ? <DialogTrigger render={trigger} /> : null}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Registrar acerto</DialogTitle>
+          <DialogTitle>{settlement ? "Editar acerto" : "Registrar acerto"}</DialogTitle>
           <DialogDescription>
             Anote um pagamento entre vocês (Pix, dinheiro…). Ele abate a dívida, mas não mexe no saldo das contas.
           </DialogDescription>
@@ -58,6 +74,7 @@ export function SettlementDialog({
             currentUserId={currentUserId}
             today={today}
             suggestion={suggestion}
+            settlement={settlement}
             onDone={() => setOpen(false)}
           />
         ) : null}
@@ -72,6 +89,7 @@ function SettlementForm({
   currentUserId,
   today,
   suggestion,
+  settlement,
   onDone,
 }: {
   workspaceId: string;
@@ -79,19 +97,25 @@ function SettlementForm({
   currentUserId: string;
   today: string;
   suggestion?: Transfer;
+  settlement?: SettlementRecord;
   onDone: () => void;
 }) {
   const other = (userId: string) => members.find((m) => m.userId !== userId)?.userId ?? "";
-  const [fromUserId, setFromUserId] = useState(suggestion?.fromUserId ?? currentUserId);
-  const [toUserId, setToUserId] = useState(suggestion?.toUserId ?? other(suggestion?.fromUserId ?? currentUserId));
-  const [amountCents, setAmountCents] = useState(suggestion?.amountCents ?? 0);
-  const [date, setDate] = useState(today);
-  const [note, setNote] = useState("");
+  const initialFrom = settlement?.fromUserId ?? suggestion?.fromUserId ?? currentUserId;
+  const [fromUserId, setFromUserId] = useState(initialFrom);
+  const [toUserId, setToUserId] = useState(settlement?.toUserId ?? suggestion?.toUserId ?? other(initialFrom));
+  const [amountCents, setAmountCents] = useState(settlement?.amountCents ?? suggestion?.amountCents ?? 0);
+  const [date, setDate] = useState(settlement?.date ?? today);
+  const [note, setNote] = useState(settlement?.note ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const name = (userId: string) =>
-    userId === currentUserId ? "Você" : (members.find((m) => m.userId === userId)?.displayName ?? "?");
+  const name = (userId: string) => {
+    if (userId === currentUserId) return "Você";
+    const person = members.find((m) => m.userId === userId);
+    if (!person) return "?";
+    return person.isMember === false ? `${person.displayName} (saiu)` : person.displayName;
+  };
 
   const changeFrom = (userId: string) => {
     setFromUserId(userId);
@@ -112,7 +136,8 @@ function SettlementForm({
       return;
     }
     startTransition(async () => {
-      const result = await createSettlement({
+      const result = await saveSettlement({
+        id: settlement?.id,
         workspaceId,
         fromUserId,
         toUserId,
@@ -124,7 +149,7 @@ function SettlementForm({
         setError(result.error);
         return;
       }
-      toast.success(`Acerto de ${formatBRL(amountCents)} registrado`);
+      toast.success(settlement ? "Acerto atualizado" : `Acerto de ${formatBRL(amountCents)} registrado`);
       onDone();
     });
   };
@@ -202,7 +227,7 @@ function SettlementForm({
 
       <DialogFooter>
         <Button type="submit" disabled={pending || !toUserId}>
-          {pending ? "Salvando…" : "Registrar acerto"}
+          {pending ? "Salvando…" : settlement ? "Salvar alterações" : "Registrar acerto"}
         </Button>
       </DialogFooter>
     </form>

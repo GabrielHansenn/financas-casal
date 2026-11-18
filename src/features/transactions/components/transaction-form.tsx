@@ -13,6 +13,7 @@ import { addDays } from "@/lib/dates";
 import { formatBRL } from "@/lib/money";
 import { computeSplits, SPLIT_ERROR_MESSAGES } from "@/lib/splits";
 import { deleteTransaction, saveTransaction } from "../actions";
+import { involvesFormerMember } from "../former-members";
 import {
   SPLIT_TYPE_LABELS,
   TRANSACTION_TYPE_LABELS,
@@ -83,7 +84,15 @@ export function TransactionForm({
     () => data.categories.filter((c) => c.type === (type === "income" ? "income" : "expense")),
     [data.categories, type],
   );
-  const canSplit = isShared && type === "expense";
+  // Amount and split are frozen when the expense involves someone who left the workspace
+  const locked =
+    !!draft &&
+    isShared &&
+    involvesFormerMember(
+      { paidBy: draft.paidBy, splitUserIds: Object.keys(draft.customSplits) },
+      data.members.map((m) => m.userId),
+    );
+  const canSplit = isShared && type === "expense" && !locked;
   const yesterday = addDays(data.today, -1);
   const memberName = (userId: string) =>
     userId === data.currentUserId ? "Eu" : (data.members.find((m) => m.userId === userId)?.displayName ?? "?");
@@ -152,7 +161,8 @@ export function TransactionForm({
         categoryId: type === "transfer" ? null : categoryId,
         description: description.trim() || undefined,
         paidBy: type === "expense" ? paidBy : null,
-        splitType: canSplit ? splitType : "none",
+        // A locked edit sends the split unchanged; the server only updates the other fields
+        splitType: canSplit || locked ? splitType : "none",
         customSplits: canSplit && splitType === "custom" ? custom : undefined,
       });
 
@@ -186,16 +196,24 @@ export function TransactionForm({
 
   return (
     <form onSubmit={submit} className="grid gap-5" noValidate>
-      <Segmented
-        label="Tipo de lançamento"
-        value={type}
-        onChange={changeType}
-        options={[
-          { value: "expense", label: "Despesa" },
-          { value: "income", label: "Receita" },
-          { value: "transfer", label: "Transferência" },
-        ]}
-      />
+      {locked ? (
+        <p className="flex items-start gap-2 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
+          <TriangleAlertIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
+          Esta despesa foi dividida com alguém que saiu do workspace. O valor e a divisão ficam como estão
+          para o acerto continuar certo; dá para mudar descrição, data, conta e categoria.
+        </p>
+      ) : (
+        <Segmented
+          label="Tipo de lançamento"
+          value={type}
+          onChange={changeType}
+          options={[
+            { value: "expense", label: "Despesa" },
+            { value: "income", label: "Receita" },
+            { value: "transfer", label: "Transferência" },
+          ]}
+        />
+      )}
 
       <div className="grid gap-1.5">
         <Label htmlFor="amount" className="sr-only">
@@ -210,6 +228,7 @@ export function TransactionForm({
           autoFocus={!isEdit}
           aria-label="Valor"
           enterKeyHint="done"
+          disabled={locked}
         />
       </div>
 

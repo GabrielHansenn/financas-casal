@@ -11,18 +11,22 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import Link from "next/link";
-import { useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { ConfirmDialog } from "@/components/confirm-dialog";
+import { ConfirmDialog, ImpactList } from "@/components/confirm-dialog";
+import { ItemMenu } from "@/components/item-menu";
+import { toastWithUndo } from "@/components/undo-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateBR, formatMonthLabel } from "@/lib/dates";
 import { formatBRL, formatSignedBRL } from "@/lib/money";
+import { plural } from "@/lib/plural";
 import { cn } from "@/lib/utils";
-import { deleteContribution, deleteGoal, setGoalArchived } from "../actions";
+import { deleteContribution, deleteGoal, saveContribution, setGoalArchived } from "../actions";
+import type { ContributionInput } from "../schemas";
 import { computeGoalProgress } from "../progress";
-import type { GoalItem } from "../types";
+import type { GoalContribution, GoalItem } from "../types";
 import { ContributionDialog } from "./contribution-dialog";
 import { GoalDialog } from "./goal-dialog";
 import { GoalProgressBar } from "./goal-progress-bar";
@@ -44,6 +48,7 @@ export function GoalCard({
   memberNames: Record<string, string>;
 }) {
   const [pending, startTransition] = useTransition();
+  const [dialog, setDialog] = useState<"edit" | "delete" | null>(null);
   const progress = computeGoalProgress({ ...goal, today });
   const who = (userId: string) => (userId === currentUserId ? "Você" : (memberNames[userId] ?? "Ex-membro"));
 
@@ -82,15 +87,44 @@ export function GoalCard({
               </Link>
             ) : null}
           </div>
+          <ItemMenu
+            label={`Ações da meta ${goal.name}`}
+            className="-mt-2 -mr-2"
+            actions={[
+              { label: "Editar", icon: PencilIcon, onSelect: () => setDialog("edit") },
+              goal.archived
+                ? { label: "Desarquivar", icon: ArchiveRestoreIcon, onSelect: toggleArchived, disabled: pending }
+                : { label: "Arquivar", icon: ArchiveIcon, onSelect: toggleArchived, disabled: pending },
+              { label: "Excluir", icon: Trash2Icon, destructive: true, onSelect: () => setDialog("delete") },
+            ]}
+          />
           <GoalDialog
             workspaceId={workspaceId}
             today={today}
             goal={goal}
-            trigger={
-              <Button variant="ghost" size="icon-sm" aria-label={`Editar meta ${goal.name}`}>
-                <PencilIcon />
-              </Button>
+            open={dialog === "edit"}
+            onOpenChange={(open) => !open && setDialog(null)}
+          />
+          <ConfirmDialog
+            open={dialog === "delete"}
+            onOpenChange={(open) => !open && setDialog(null)}
+            title={`Excluir a meta "${goal.name}"?`}
+            description="Isso não pode ser desfeito. Para só tirar da lista, arquive."
+            details={
+              <ImpactList
+                items={[
+                  goal.contributions.length > 0 &&
+                    `${plural(goal.contributions.length, "movimentação", "movimentações")} do histórico (${formatBRL(goal.currentCents)} guardados) serão apagadas.`,
+                  goal.dream?.status === "planning" && `O sonho "${goal.dream.title}" volta para Sonhando.`,
+                  goal.dream?.status === "achieved" && `O sonho "${goal.dream.title}" continua como realizado.`,
+                  "O saldo das contas não muda: metas não movimentam contas.",
+                ]}
+              />
             }
+            confirmLabel="Excluir meta"
+            confirmText={goal.contributions.length > 0 ? goal.name : undefined}
+            successMessage="Meta excluída"
+            onConfirm={() => deleteGoal(goal.id)}
           />
         </div>
         <GoalProgressBar fraction={progress.fraction} reached={progress.reached} label={`Progresso de ${goal.name}`} />
@@ -140,37 +174,13 @@ export function GoalCard({
             </summary>
             <ul className="divide-y border-t">
               {goal.contributions.slice(0, HISTORY_PREVIEW).map((c) => (
-                <li key={c.id} className="flex items-center gap-3 px-3 py-2">
-                  <span className="grid min-w-0 flex-1">
-                    <span className="text-sm">
-                      {who(c.createdBy)} {c.amountCents > 0 ? "aportou" : "resgatou"}
-                    </span>
-                    <span className="truncate text-xs text-muted-foreground">
-                      {formatDateBR(c.date)}
-                      {c.note ? ` · ${c.note}` : ""}
-                    </span>
-                  </span>
-                  <span
-                    className={cn(
-                      "text-sm font-medium tabular-nums",
-                      c.amountCents > 0 && "text-emerald-600 dark:text-emerald-400",
-                    )}
-                  >
-                    {formatSignedBRL(c.amountCents)}
-                  </span>
-                  <ConfirmDialog
-                    trigger={
-                      <Button variant="ghost" size="icon-sm" aria-label="Excluir movimentação">
-                        <Trash2Icon />
-                      </Button>
-                    }
-                    title="Excluir movimentação?"
-                    description={`${c.amountCents > 0 ? "Aporte" : "Resgate"} de ${formatBRL(Math.abs(c.amountCents))} em ${formatDateBR(c.date)}.`}
-                    confirmLabel="Excluir"
-                    successMessage="Movimentação excluída"
-                    onConfirm={() => deleteContribution(c.id)}
-                  />
-                </li>
+                <ContributionRow
+                  key={c.id}
+                  goal={goal}
+                  contribution={c}
+                  today={today}
+                  who={who(c.createdBy)}
+                />
               ))}
             </ul>
             {goal.contributions.length > HISTORY_PREVIEW ? (
@@ -183,26 +193,84 @@ export function GoalCard({
           <p className="text-sm text-muted-foreground">Nenhum aporte ainda.</p>
         )}
 
-        <div className="flex flex-wrap justify-end gap-1 border-t pt-3">
-          <Button variant="ghost" size="sm" onClick={toggleArchived} disabled={pending}>
-            {goal.archived ? <ArchiveRestoreIcon aria-hidden /> : <ArchiveIcon aria-hidden />}
-            {goal.archived ? "Desarquivar" : "Arquivar"}
-          </Button>
-          <ConfirmDialog
-            trigger={
-              <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
-                <Trash2Icon aria-hidden /> Excluir
-              </Button>
-            }
-            title={`Excluir a meta "${goal.name}"?`}
-            description={`O histórico de aportes e resgates também será apagado. Para só tirar da lista, arquive.${goal.dream && goal.dream.status === "planning" ? ` O sonho "${goal.dream.title}" volta para Sonhando.` : ""}`}
-            confirmLabel="Excluir meta"
-            confirmText={goal.contributions.length > 0 ? goal.name : undefined}
-            successMessage="Meta excluída"
-            onConfirm={() => deleteGoal(goal.id)}
-          />
-        </div>
       </CardContent>
     </Card>
+  );
+}
+
+function ContributionRow({
+  goal,
+  contribution: c,
+  today,
+  who,
+}: {
+  goal: GoalItem;
+  contribution: GoalContribution;
+  today: string;
+  /** "Você" or the member's name */
+  who: string;
+}) {
+  const [dialog, setDialog] = useState<"edit" | "delete" | null>(null);
+  const snapshot = useRef<ContributionInput | null>(null);
+  const label = `${c.amountCents > 0 ? "Aporte" : "Resgate"} de ${formatBRL(Math.abs(c.amountCents))} em ${formatDateBR(c.date)}`;
+
+  return (
+    <li className="flex items-center gap-3 py-1 pr-1 pl-3">
+      <span className="grid min-w-0 flex-1">
+        <span className="text-sm">
+          {who} {c.amountCents > 0 ? "aportou" : "resgatou"}
+        </span>
+        <span className="truncate text-xs text-muted-foreground">
+          {formatDateBR(c.date)}
+          {c.note ? ` · ${c.note}` : ""}
+        </span>
+      </span>
+      <span className={cn("text-sm font-medium tabular-nums", c.amountCents > 0 && "text-emerald-600 dark:text-emerald-400")}>
+        {formatSignedBRL(c.amountCents)}
+      </span>
+      <ItemMenu
+        label={`Ações: ${label}`}
+        actions={[
+          !goal.archived && { label: "Editar", icon: PencilIcon, onSelect: () => setDialog("edit") },
+          { label: "Excluir", icon: Trash2Icon, destructive: true, onSelect: () => setDialog("delete") },
+        ]}
+      />
+      <ContributionDialog
+        goal={goal}
+        today={today}
+        initialKind={c.amountCents < 0 ? "withdrawal" : "deposit"}
+        contribution={c}
+        open={dialog === "edit"}
+        onOpenChange={(open) => !open && setDialog(null)}
+      />
+      <ConfirmDialog
+        open={dialog === "delete"}
+        onOpenChange={(open) => !open && setDialog(null)}
+        title="Excluir movimentação?"
+        description={`${label}.`}
+        details={
+          <ImpactList
+            items={[
+              c.amountCents > 0
+                ? `A meta passa a ter ${formatBRL(goal.currentCents - c.amountCents)} guardados.`
+                : `O valor volta para a meta, que passa a ter ${formatBRL(goal.currentCents - c.amountCents)}.`,
+              "Você pode desfazer logo depois de excluir.",
+            ]}
+          />
+        }
+        confirmLabel="Excluir"
+        onConfirm={async () => {
+          const result = await deleteContribution(c.id);
+          if (!result.ok) return result;
+          snapshot.current = result.snapshot;
+          return { ok: true };
+        }}
+        onSuccess={() => {
+          const deleted = snapshot.current;
+          if (deleted) toastWithUndo("Movimentação excluída", () => saveContribution(deleted), "Movimentação restaurada");
+          else toast.success("Movimentação excluída");
+        }}
+      />
+    </li>
   );
 }

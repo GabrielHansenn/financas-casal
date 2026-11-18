@@ -66,7 +66,8 @@ export async function getTransactions(
     .select(
       `id, type, amount_cents, date, description, account_id, to_account_id, category_id, paid_by,
        split_type, splits:transaction_splits(user_id, amount_cents),
-       payer:profiles!transactions_paid_by_fkey(display_name)`,
+       created_by, payer:profiles!transactions_paid_by_fkey(display_name),
+       creator:profiles!transactions_created_by_fkey(display_name)`,
     )
     .eq("workspace_id", workspaceId)
     .gte("date", from)
@@ -95,6 +96,8 @@ export async function getTransactions(
     categoryId: t.category_id,
     paidBy: t.paid_by,
     payerName: t.payer?.display_name ?? null,
+    createdBy: t.created_by,
+    creatorName: t.creator?.display_name ?? null,
     splitType: t.split_type,
     splits: t.splits.map((s) => ({ userId: s.user_id, amountCents: s.amount_cents })),
   }));

@@ -45,6 +45,72 @@ export async function saveCategory(raw: unknown): Promise<CategoryActionResult> 
   return { ok: true };
 }
 
+export type CategoryUsage = { transactions: number; recurrences: number; activeRecurrences: number };
+
+/** What depends on a category, to explain archive/delete before the user confirms. */
+export async function getCategoryUsage(
+  id: string,
+): Promise<{ ok: true; usage: CategoryUsage } | { ok: false; error: string }> {
+  if (!z.guid().safeParse(id).success) return { ok: false, error: "Categoria inválida." };
+
+  await getWorkspaceContext();
+  const supabase = await createClient();
+  const [category, transactions, recurrences] = await Promise.all([
+    supabase.from("categories").select("id").eq("id", id).maybeSingle(),
+    supabase.from("transactions").select("id", { count: "exact", head: true }).eq("category_id", id),
+    supabase.from("recurring_transactions").select("active").eq("category_id", id),
+  ]);
+  if (category.error || transactions.error || recurrences.error) {
+    return { ok: false, error: "Não foi possível carregar os dados da categoria." };
+  }
+  if (!category.data) return { ok: false, error: "Categoria não encontrada." };
+
+  return {
+    ok: true,
+    usage: {
+      transactions: transactions.count ?? 0,
+      recurrences: recurrences.data.length,
+      activeRecurrences: recurrences.data.filter((r) => r.active).length,
+    },
+  };
+}
+
+/**
+ * Deletes a category. `moveTo`: null = only when nothing uses it; "" = leave the records
+ * without a category; an id = move them to that category (same type) first.
+ */
+export async function deleteCategory(id: string, moveTo: string | null): Promise<CategoryActionResult> {
+  if (!z.guid().safeParse(id).success) return { ok: false, error: "Categoria inválida." };
+  const uncategorize = moveTo === "";
+  if (moveTo && !z.guid().safeParse(moveTo).success) return { ok: false, error: "Categoria de destino inválida." };
+
+  await getWorkspaceContext();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("delete_category", {
+    p_category_id: id,
+    p_move_to: moveTo || undefined,
+    p_uncategorize: uncategorize,
+  });
+
+  if (error) {
+    switch (error.code) {
+      case "P0002":
+        return { ok: false, error: "Categoria não encontrada." };
+      case "23503":
+        return { ok: false, error: "Esta categoria tem lançamentos. Escolha para onde movê-los ou arquive a categoria." };
+      case "22023":
+        return { ok: false, error: "Escolha outra categoria ativa do mesmo tipo." };
+      default:
+        console.error("[categories] delete", error.code, error.message);
+        return { ok: false, error: "Não foi possível excluir a categoria." };
+    }
+  }
+
+  refresh();
+  return { ok: true };
+}
+
+/** Archiving also pauses the category's recurrences (database trigger). */
 export async function setCategoryArchived(id: string, archived: boolean): Promise<CategoryActionResult> {
   if (!z.guid().safeParse(id).success) return { ok: false, error: "Categoria inválida." };
 
@@ -56,7 +122,14 @@ export async function setCategoryArchived(id: string, archived: boolean): Promis
     .eq("id", id)
     .select("id");
 
-  if (error || data.length === 0) return { ok: false, error: "Não foi possível atualizar a categoria." };
+  if (error) {
+    console.error("[categories] archive", error.code, error.message);
+    return {
+      ok: false,
+      error: archived ? "Não foi possível arquivar a categoria." : "Não foi possível restaurar a categoria.",
+    };
+  }
+  if (data.length === 0) return { ok: false, error: "Categoria não encontrada." };
   refresh();
   return { ok: true };
 }

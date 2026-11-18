@@ -112,7 +112,12 @@ function SharedWorkspaceCard({ workspace, isActive }: { workspace: WorkspaceDeta
               <p className="text-sm font-medium">Configurações</p>
               <RenameWorkspaceForm workspaceId={workspace.id} name={workspace.name} />
             </div>
-            <div className="flex justify-end">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                {alone
+                  ? "Quer sair? Como você é o único membro, a saída é excluir o workspace."
+                  : "Quer sair? Primeiro torne outra pessoa dona (menu ⋯ ao lado do nome dela)."}
+              </p>
               <DeleteWorkspaceButton workspaceId={workspace.id} name={workspace.name} />
             </div>
           </>

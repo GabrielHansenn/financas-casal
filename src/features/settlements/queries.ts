@@ -59,10 +59,14 @@ export async function getSettlementData(workspaceId: string): Promise<Settlement
     displayName: m.profile?.display_name ?? "Usuário",
     isMember: true,
   }));
-  // People in the ledger who left the workspace: their profile is no longer visible (RLS)
-  for (const userId of balances.keys()) {
-    if (!people.some((p) => p.userId === userId)) {
-      people.push({ userId, displayName: "Ex-membro", isMember: false });
+  // People in the ledger who left the workspace. Their profile stays visible to whoever shares
+  // history with them (RLS); a deleted account shows as "Ex-membro".
+  const formerIds = [...balances.keys()].filter((userId) => !people.some((p) => p.userId === userId));
+  if (formerIds.length > 0) {
+    const { data: profiles } = await supabase.from("profiles").select("id, display_name").in("id", formerIds);
+    for (const userId of formerIds) {
+      const displayName = profiles?.find((p) => p.id === userId)?.display_name ?? "Ex-membro";
+      people.push({ userId, displayName, isMember: false });
     }
   }
 

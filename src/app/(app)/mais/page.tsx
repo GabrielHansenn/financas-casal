@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { signOut } from "@/features/auth/actions";
+import { DeleteAccount } from "@/features/profile/components/delete-account";
 import { ProfileForm } from "@/features/profile/components/profile-form";
 import { getWorkspaceContext } from "@/features/workspaces/active-workspace";
 
@@ -74,6 +75,15 @@ export default function MorePage() {
             Sair
           </Button>
         </form>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Excluir conta</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DeleteAccount />
+          </CardContent>
+        </Card>
       </div>
     </>
   );

@@ -50,17 +50,18 @@ export async function getAccountsForManagement(workspaceId: string): Promise<Man
   }));
 }
 
-/** Active (non-archived) accounts of a workspace with their current balance. RLS applies. */
-export async function getAccountsWithBalances(workspaceId: string): Promise<AccountWithBalance[]> {
+/**
+ * Active (non-archived) accounts of a workspace with their current balance, plus the total
+ * of archived accounts: archiving hides an account, but its money still counts. RLS applies.
+ */
+export async function getAccountsWithBalances(workspaceId: string): Promise<{
+  accounts: AccountWithBalance[];
+  archived: { count: number; balanceCents: number };
+}> {
   const supabase = await createClient();
 
   const [accounts, balances] = await Promise.all([
-    supabase
-      .from("accounts")
-      .select("id, name, type")
-      .eq("workspace_id", workspaceId)
-      .is("archived_at", null)
-      .order("created_at"),
+    supabase.from("accounts").select("id, name, type, archived_at").eq("workspace_id", workspaceId).order("created_at"),
     supabase.from("account_balances").select("account_id, balance_cents").eq("workspace_id", workspaceId),
   ]);
 
@@ -68,11 +69,20 @@ export async function getAccountsWithBalances(workspaceId: string): Promise<Acco
   if (balances.error) throw balances.error;
 
   const balanceById = new Map(balances.data.map((b) => [b.account_id, b.balance_cents ?? 0]));
+  const archivedRows = accounts.data.filter((a) => a.archived_at !== null);
 
-  return accounts.data.map((account) => ({
-    id: account.id,
-    name: account.name,
-    type: account.type,
-    balanceCents: balanceById.get(account.id) ?? 0,
-  }));
+  return {
+    accounts: accounts.data
+      .filter((a) => a.archived_at === null)
+      .map((account) => ({
+        id: account.id,
+        name: account.name,
+        type: account.type,
+        balanceCents: balanceById.get(account.id) ?? 0,
+      })),
+    archived: {
+      count: archivedRows.length,
+      balanceCents: archivedRows.reduce((sum, a) => sum + (balanceById.get(a.id) ?? 0), 0),
+    },
+  };
 }

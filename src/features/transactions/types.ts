@@ -59,6 +59,8 @@ export type TransactionListItem = {
   categoryId: string | null;
   paidBy: string | null;
   payerName: string | null;
+  createdBy: string;
+  creatorName: string | null;
   splitType: SplitType;
   splits: { userId: string; amountCents: number }[];
 };

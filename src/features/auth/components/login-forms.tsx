@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { sendMagicLink, signInWithPassword } from "../actions";
 
+const URL_NOTICES: Record<string, string> = {
+  "conta-excluida": "Sua conta foi excluída. Obrigado por ter usado o Adois.",
+};
+
 const URL_ERRORS: Record<string, string> = {
   "link-invalido": "Esse link expirou ou já foi usado. Peça um novo.",
 };
@@ -16,6 +20,7 @@ export function LoginForms() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
   const urlError = URL_ERRORS[searchParams.get("erro") ?? ""];
+  const urlNotice = URL_NOTICES[searchParams.get("aviso") ?? ""];
 
   const [passwordState, passwordAction, passwordPending] = useActionState(signInWithPassword, null);
   const [linkState, linkAction, linkPending] = useActionState(sendMagicLink, null);
@@ -25,6 +30,7 @@ export function LoginForms() {
   return (
     <div className="grid gap-6">
       {urlError ? <FormMessage type="error">{urlError}</FormMessage> : null}
+      {urlNotice ? <FormMessage type="success">{urlNotice}</FormMessage> : null}
 
       <Tabs defaultValue="password">
         <TabsList className="w-full">

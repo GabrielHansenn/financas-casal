@@ -4,6 +4,7 @@ import { MAX_INPUT_CENTS } from "@/lib/money";
 
 export const settlementInputSchema = z
   .object({
+    id: z.guid().optional(),
     workspaceId: z.guid(),
     fromUserId: z.guid({ error: "Escolha quem pagou." }),
     toUserId: z.guid({ error: "Escolha quem recebeu." }),

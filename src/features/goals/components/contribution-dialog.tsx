@@ -17,8 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL } from "@/lib/money";
-import { addContribution } from "../actions";
-import type { GoalItem } from "../types";
+import { saveContribution } from "../actions";
+import type { GoalContribution, GoalItem } from "../types";
 
 type Kind = "deposit" | "withdrawal";
 
@@ -26,27 +26,45 @@ export function ContributionDialog({
   goal,
   today,
   initialKind,
+  contribution,
   trigger,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   goal: GoalItem;
   today: string;
   initialKind: Kind;
-  trigger: ReactElement;
+  /** Existing deposit/withdrawal to edit */
+  contribution?: GoalContribution;
+  trigger?: ReactElement;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = (next: boolean) => {
+    setUncontrolledOpen(next);
+    onOpenChange?.(next);
+  };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger} />
+      {trigger ? <DialogTrigger render={trigger} /> : null}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{goal.name}</DialogTitle>
+          <DialogTitle>{contribution ? `Editar movimentação · ${goal.name}` : goal.name}</DialogTitle>
           <DialogDescription>
             Guardado até agora: {formatBRL(goal.currentCents)} de {formatBRL(goal.targetCents)}. O registro não
             movimenta o saldo das contas.
           </DialogDescription>
         </DialogHeader>
         {open ? (
-          <ContributionForm goal={goal} today={today} initialKind={initialKind} onDone={() => setOpen(false)} />
+          <ContributionForm
+            goal={goal}
+            today={today}
+            initialKind={initialKind}
+            contribution={contribution}
+            onDone={() => setOpen(false)}
+          />
         ) : null}
       </DialogContent>
     </Dialog>
@@ -57,22 +75,28 @@ function ContributionForm({
   goal,
   today,
   initialKind,
+  contribution,
   onDone,
 }: {
   goal: GoalItem;
   today: string;
   initialKind: Kind;
+  contribution?: GoalContribution;
   onDone: () => void;
 }) {
-  const [kind, setKind] = useState<Kind>(initialKind);
-  const [amountCents, setAmountCents] = useState(0);
-  const [date, setDate] = useState(today);
-  const [note, setNote] = useState("");
+  const [kind, setKind] = useState<Kind>(
+    contribution ? (contribution.amountCents < 0 ? "withdrawal" : "deposit") : initialKind,
+  );
+  const [amountCents, setAmountCents] = useState(contribution ? Math.abs(contribution.amountCents) : 0);
+  const [date, setDate] = useState(contribution?.date ?? today);
+  const [note, setNote] = useState(contribution?.note ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const tooMuch = kind === "withdrawal" && amountCents > goal.currentCents;
-  const remaining = Math.max(0, goal.targetCents - goal.currentCents);
+  // When editing, the balance without this movement is what the new value applies to
+  const baseCents = goal.currentCents - (contribution?.amountCents ?? 0);
+  const tooMuch = kind === "withdrawal" && amountCents > baseCents;
+  const remaining = Math.max(0, goal.targetCents - baseCents);
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -82,22 +106,31 @@ function ContributionForm({
       return;
     }
     if (tooMuch) {
-      setError(`Não dá para resgatar mais do que tem na meta (${formatBRL(goal.currentCents)}).`);
+      setError(`Não dá para resgatar mais do que tem na meta (${formatBRL(baseCents)}).`);
       return;
     }
     startTransition(async () => {
-      const result = await addContribution({ goalId: goal.id, kind, amountCents, date, note: note.trim() || undefined });
+      const result = await saveContribution({
+        id: contribution?.id,
+        goalId: goal.id,
+        kind,
+        amountCents,
+        date,
+        note: note.trim() || undefined,
+      });
       if (!result.ok) {
         setError(result.error);
         return;
       }
-      const after = goal.currentCents + (kind === "deposit" ? amountCents : -amountCents);
+      const after = baseCents + (kind === "deposit" ? amountCents : -amountCents);
       toast.success(
-        kind === "deposit"
-          ? after >= goal.targetCents
-            ? `Meta "${goal.name}" alcançada!`
-            : `Aporte de ${formatBRL(amountCents)} registrado`
-          : `Resgate de ${formatBRL(amountCents)} registrado`,
+        contribution
+          ? "Movimentação atualizada"
+          : kind === "deposit"
+            ? after >= goal.targetCents
+              ? `Meta "${goal.name}" alcançada!`
+              : `Aporte de ${formatBRL(amountCents)} registrado`
+            : `Resgate de ${formatBRL(amountCents)} registrado`,
       );
       onDone();
     });
@@ -128,7 +161,7 @@ function ContributionForm({
         ) : null}
         {kind === "withdrawal" ? (
           <p className={tooMuch ? "text-xs text-destructive" : "text-xs text-muted-foreground"}>
-            Disponível para resgate: {formatBRL(goal.currentCents)}
+            Disponível para resgate: {formatBRL(baseCents)}
           </p>
         ) : null}
       </div>
@@ -161,7 +194,7 @@ function ContributionForm({
       ) : null}
       <DialogFooter>
         <Button type="submit" disabled={pending || tooMuch}>
-          {pending ? "Salvando…" : kind === "deposit" ? "Aportar" : "Resgatar"}
+          {pending ? "Salvando…" : contribution ? "Salvar alterações" : kind === "deposit" ? "Aportar" : "Resgatar"}
         </Button>
       </DialogFooter>
     </form>

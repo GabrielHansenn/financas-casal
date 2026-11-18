@@ -23,16 +23,25 @@ export function GoalDialog({
   today,
   goal,
   trigger,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   workspaceId: string;
   today: string;
   goal?: GoalItem;
-  trigger: ReactElement;
+  trigger?: ReactElement;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = (next: boolean) => {
+    setUncontrolledOpen(next);
+    onOpenChange?.(next);
+  };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger} />
+      {trigger ? <DialogTrigger render={trigger} /> : null}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{goal ? "Editar meta" : "Nova meta"}</DialogTitle>

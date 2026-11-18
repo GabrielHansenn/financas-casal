@@ -1,14 +1,18 @@
 "use client";
 
-import { ArrowLeftRightIcon, Trash2Icon } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeftRightIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { CategoryIcon } from "@/components/category-icon";
-import { ConfirmDialog } from "@/components/confirm-dialog";
+import { ConfirmDialog, ImpactList } from "@/components/confirm-dialog";
+import { ItemMenu } from "@/components/item-menu";
+import { toastWithUndo } from "@/components/undo-toast";
 import { Button } from "@/components/ui/button";
-import { addDays, formatDayLabel } from "@/lib/dates";
+import { addDays, formatDateBR, formatDayLabel } from "@/lib/dates";
 import { formatBRL, formatSignedBRL } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import { deleteTransaction } from "../actions";
+import { deleteTransaction, restoreTransaction } from "../actions";
+import type { TransactionSnapshot } from "../schemas";
 import { withArchivedOptions } from "../edit-data";
 import { signedAmount, type DayGroup } from "../list";
 import type { ListOptions, QuickAddData, SplitType, TransactionDraft, TransactionListItem } from "../types";
@@ -67,6 +71,12 @@ export function TransactionList({
   const payerLabel = (tx: TransactionListItem) =>
     tx.paidBy === data.currentUserId ? "você" : (tx.payerName ?? "outra pessoa");
 
+  const [toDelete, setToDelete] = useState<TransactionListItem | null>(null);
+  const deletedSnapshot = useRef<TransactionSnapshot | null>(null);
+  const isShared = data.workspaceType === "shared";
+  const personLabel = (userId: string, name: string | null) =>
+    userId === data.currentUserId ? "você" : (name ?? "outra pessoa");
+
   const openEdit = (tx: TransactionListItem) => {
     setSelected(tx);
     setOpen(true);
@@ -101,11 +111,11 @@ export function TransactionList({
                 }
 
                 return (
-                  <li key={tx.id}>
+                  <li key={tx.id} className="flex items-center pr-1">
                     <button
                       type="button"
                       onClick={() => openEdit(tx)}
-                      className="flex w-full items-center gap-3 px-3 py-3 text-left transition-colors outline-none hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 first:rounded-t-xl last:rounded-b-xl"
+                      className="flex min-w-0 flex-1 items-center gap-3 rounded-l-xl py-3 pr-1 pl-3 text-left transition-colors outline-none hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50"
                     >
                       {tx.type === "transfer" ? (
                         <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted">
@@ -134,6 +144,13 @@ export function TransactionList({
                         {signed === 0 ? formatBRL(tx.amountCents) : formatSignedBRL(signed)}
                       </span>
                     </button>
+                    <ItemMenu
+                      label={`Ações do lançamento ${titleOf(tx, cat?.name)}`}
+                      actions={[
+                        { label: "Editar", icon: PencilIcon, onSelect: () => openEdit(tx) },
+                        { label: "Excluir", icon: Trash2Icon, destructive: true, onSelect: () => setToDelete(tx) },
+                      ]}
+                    />
                   </li>
                 );
               })}
@@ -156,25 +173,48 @@ export function TransactionList({
               draft={toDraft(selected)}
               onDone={() => setOpen(false)}
             />
-            <ConfirmDialog
-              trigger={
-                <Button variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
-                  <Trash2Icon aria-hidden /> Excluir lançamento
-                </Button>
-              }
-              title="Excluir lançamento?"
-              description={`${titleOf(selected, category(selected.categoryId)?.name)} de ${formatBRL(selected.amountCents)} será excluído. Isso não pode ser desfeito.`}
-              confirmLabel="Excluir"
-              successMessage="Lançamento excluído"
-              onConfirm={async () => {
-                const result = await deleteTransaction(selected.id);
-                if (result.ok) setOpen(false);
-                return result;
-              }}
-            />
+            <Button
+              variant="ghost"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => setToDelete(selected)}
+            >
+              <Trash2Icon aria-hidden /> Excluir lançamento
+            </Button>
           </div>
         ) : null}
       </TransactionSheet>
+
+      {toDelete ? (
+        <ConfirmDialog
+          key={toDelete.id}
+          open
+          onOpenChange={(next) => !next && setToDelete(null)}
+          title="Excluir lançamento?"
+          description={`${titleOf(toDelete, category(toDelete.categoryId)?.name)} de ${formatBRL(toDelete.amountCents)} em ${formatDateBR(toDelete.date)}.`}
+          details={
+            <ImpactList
+              items={[
+                isShared && `Lançado por ${personLabel(toDelete.createdBy, toDelete.creatorName)}.`,
+                toDelete.splitType !== "none" && "A divisão sai do acerto do casal, que é recalculado na hora.",
+                "Você pode desfazer logo depois de excluir.",
+              ]}
+            />
+          }
+          confirmLabel="Excluir"
+          onConfirm={async () => {
+            const result = await deleteTransaction(toDelete.id);
+            if (!result.ok) return result;
+            deletedSnapshot.current = result.snapshot;
+            return { ok: true };
+          }}
+          onSuccess={() => {
+            setOpen(false);
+            const snapshot = deletedSnapshot.current;
+            if (snapshot) toastWithUndo("Lançamento excluído", () => restoreTransaction(snapshot), "Lançamento restaurado");
+            else toast.success("Lançamento excluído");
+          }}
+        />
+      ) : null}
     </>
   );
 }

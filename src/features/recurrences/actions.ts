@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { z } from "@/lib/zod";
+import { referenceErrorMessage } from "@/lib/db-errors";
 import { todayISO } from "@/lib/dates";
 import { dueOccurrences, firstOccurrenceOnOrAfter } from "@/lib/recurrence";
 import { computeSplits } from "@/lib/splits";
@@ -188,7 +189,7 @@ export async function saveRecurrence(raw: unknown): Promise<SaveRecurrenceResult
       .update({ ...values, next_date: nextDate })
       .eq("id", input.id)
       .eq("workspace_id", workspace.id);
-    if (error) return { ok: false, error: saveErrorMessage(error.code) };
+    if (error) return { ok: false, error: referenceErrorMessage(error) ?? saveErrorMessage(error.code) };
     ruleId = input.id;
   } else {
     // A start date in the past backfills from that date (capped per run)
@@ -197,7 +198,7 @@ export async function saveRecurrence(raw: unknown): Promise<SaveRecurrenceResult
       .insert({ ...values, workspace_id: workspace.id, next_date: input.startDate })
       .select("id")
       .single();
-    if (error || !data) return { ok: false, error: saveErrorMessage(error?.code) };
+    if (error || !data) return { ok: false, error: referenceErrorMessage(error) ?? saveErrorMessage(error?.code) };
     ruleId = data.id;
   }
 
@@ -229,10 +230,38 @@ export async function setRecurrencePaused(id: string, paused: boolean): Promise<
   const supabase = await createClient();
   const { data: rule } = await supabase
     .from("recurring_transactions")
-    .select("start_date, frequency, next_date")
+    .select(
+      `start_date, frequency, next_date, workspace_id, paid_by,
+       account:accounts!recurring_transactions_account_id_workspace_id_fkey(archived_at),
+       category:categories!recurring_transactions_category_id_workspace_id_fkey(archived_at)`,
+    )
     .eq("id", parsed.data)
     .maybeSingle();
   if (!rule) return { ok: false, error: "Recorrência não encontrada." };
+
+  // Resuming would only generate failing occurrences: explain what to fix first
+  if (!paused) {
+    if (rule.account?.archived_at) {
+      return { ok: false, error: "A conta desta recorrência está arquivada. Restaure a conta ou edite a recorrência." };
+    }
+    if (rule.category?.archived_at) {
+      return {
+        ok: false,
+        error: "A categoria desta recorrência está arquivada. Restaure a categoria ou edite a recorrência.",
+      };
+    }
+    if (rule.paid_by) {
+      const { data: payer } = await supabase
+        .from("workspace_members")
+        .select("user_id")
+        .eq("workspace_id", rule.workspace_id)
+        .eq("user_id", rule.paid_by)
+        .maybeSingle();
+      if (!payer) {
+        return { ok: false, error: "Quem paga esta recorrência saiu do workspace. Edite e escolha outra pessoa." };
+      }
+    }
+  }
 
   const today = todayISO();
   const update = paused

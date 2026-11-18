@@ -372,3 +372,67 @@ export async function deleteWorkspace(id: string): Promise<ActionResult> {
   refresh();
   return { ok: true };
 }
+
+export async function transferOwnership(id: string, newOwnerId: string): Promise<ActionResult> {
+  const parsed = z.object({ workspaceId, userId: z.guid() }).safeParse({ workspaceId: id, userId: newOwnerId });
+  if (!parsed.success) return { ok: false, error: "Dados inválidos." };
+
+  await getCurrentUser();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("transfer_workspace_ownership", {
+    p_workspace_id: parsed.data.workspaceId,
+    p_new_owner: parsed.data.userId,
+  });
+
+  if (error) {
+    switch (error.code) {
+      case "42501":
+        return { ok: false, error: "Só o dono pode passar o workspace para outra pessoa." };
+      case "22023":
+        return { ok: false, error: "Escolha outra pessoa que faça parte do workspace." };
+      default:
+        logUnexpected("transferOwnership", error);
+        return { ok: false, error: "Não foi possível transferir o workspace." };
+    }
+  }
+
+  refresh();
+  return { ok: true };
+}
+
+export type WorkspaceUsage = {
+  members: number;
+  accounts: number;
+  categories: number;
+  transactions: number;
+  recurrences: number;
+  goals: number;
+  dreams: number;
+};
+
+/** Counts shown before deleting a workspace, so the confirmation says exactly what is lost. */
+export async function getWorkspaceUsage(
+  id: string,
+): Promise<{ ok: true; usage: WorkspaceUsage } | { ok: false; error: string }> {
+  const parsed = workspaceId.safeParse(id);
+  if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
+
+  await getCurrentUser();
+  const supabase = await createClient();
+  const count = (table: "workspace_members" | "accounts" | "categories" | "transactions" | "recurring_transactions" | "goals" | "dreams") =>
+    supabase.from(table).select("*", { count: "exact", head: true }).eq("workspace_id", parsed.data);
+
+  const results = await Promise.all([
+    count("workspace_members"),
+    count("accounts"),
+    count("categories"),
+    count("transactions"),
+    count("recurring_transactions"),
+    count("goals"),
+    count("dreams"),
+  ]);
+  if (results.some((r) => r.error)) return { ok: false, error: "Não foi possível carregar os dados do workspace." };
+  const [members, accounts, categories, transactions, recurrences, goals, dreams] = results.map((r) => r.count ?? 0);
+
+  return { ok: true, usage: { members, accounts, categories, transactions, recurrences, goals, dreams } };
+}

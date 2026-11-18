@@ -48,13 +48,15 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
 
   const today = todayISO();
 
-  const [{ summary, previous }, accounts, goals, dreamOfWeek] = await Promise.all([
+  const [{ summary, previous }, { accounts, archived: archivedAccounts }, goals, dreamOfWeek] = await Promise.all([
     getMonthDashboard(active.id, month),
     getAccountsWithBalances(active.id),
     getGoals(active.id, { includeArchived: false }),
     getDreamOfWeek(active.id, today),
   ]);
-  const totalBalance = accounts.reduce((sum, account) => sum + account.balanceCents, 0);
+  // Archived accounts are hidden from the list, but their money still counts in the total
+  const totalBalance =
+    accounts.reduce((sum, account) => sum + account.balanceCents, 0) + archivedAccounts.balanceCents;
   const firstName = user.displayName.split(" ")[0];
   const listHref = (filters: { categoryId?: string | null; accountId?: string | null }) =>
     transactionsHref({ month, categoryId: null, accountId: null, ...filters }, thisMonth);
@@ -176,6 +178,12 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
               ))}
             </ul>
           )}
+          {archivedAccounts.count > 0 && archivedAccounts.balanceCents !== 0 ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              O total inclui {formatBRL(archivedAccounts.balanceCents)} de{" "}
+              {archivedAccounts.count === 1 ? "1 conta arquivada" : `${archivedAccounts.count} contas arquivadas`}.
+            </p>
+          ) : null}
         </CardContent>
       </Card>
     </div>

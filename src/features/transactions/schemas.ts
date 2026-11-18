@@ -36,3 +36,22 @@ export const transactionInputSchema = z
   });
 
 export type TransactionInput = z.infer<typeof transactionInputSchema>;
+
+/** A deleted transaction as it was, used by "Desfazer" to recreate it with the exact splits. */
+export const transactionSnapshotSchema = z.object({
+  workspaceId: z.guid(),
+  type: z.enum(["expense", "income", "transfer"]),
+  accountId: z.guid(),
+  toAccountId: z.guid().nullable(),
+  categoryId: z.guid().nullable(),
+  amountCents: cents.refine((v) => v > 0),
+  date: z.string().refine(isISODate),
+  description: z.string().max(200).nullable(),
+  paidBy: z.guid().nullable(),
+  splitType: z.enum(["none", "equal", "proportional", "custom"]),
+  splits: z.array(z.object({ userId: z.guid(), amountCents: cents })).max(50),
+  recurringId: z.guid().nullable(),
+  source: z.enum(["manual", "recurring", "import"]),
+});
+
+export type TransactionSnapshot = z.infer<typeof transactionSnapshotSchema>;

@@ -1,14 +1,15 @@
 "use client";
 
-import { PencilIcon, UserMinusIcon } from "lucide-react";
+import { CrownIcon, PencilIcon, UserMinusIcon } from "lucide-react";
 import { useActionState, useState } from "react";
 import { toast } from "sonner";
-import { ConfirmDialog } from "@/components/confirm-dialog";
+import { ConfirmDialog, ImpactList } from "@/components/confirm-dialog";
+import { ItemMenu } from "@/components/item-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { centsToDecimalString, formatBRL } from "@/lib/money";
-import { removeMember, updateMemberIncome } from "../actions";
+import { removeMember, transferOwnership, updateMemberIncome } from "../actions";
 import type { MemberDetail } from "../queries";
 
 export function MemberList({
@@ -31,6 +32,7 @@ export function MemberList({
             member={member}
             canEditIncome={member.isCurrentUser || viewerIsOwner}
             canRemove={viewerIsOwner && !member.isCurrentUser && member.role !== "owner"}
+            canTransfer={viewerIsOwner && !member.isCurrentUser}
           />
         ))}
       </ul>
@@ -46,13 +48,16 @@ function MemberRow({
   member,
   canEditIncome,
   canRemove,
+  canTransfer,
 }: {
   workspaceId: string;
   member: MemberDetail;
   canEditIncome: boolean;
   canRemove: boolean;
+  canTransfer: boolean;
 }) {
   const [editing, setEditing] = useState(false);
+  const [dialog, setDialog] = useState<"remove" | "transfer" | null>(null);
   const [state, action, pending] = useActionState(
     async (prev: Awaited<ReturnType<typeof updateMemberIncome>>, formData: FormData) => {
       const result = await updateMemberIncome(prev, formData);
@@ -78,30 +83,54 @@ function MemberRow({
             {member.incomeCents === null ? "Renda não informada" : formatBRL(member.incomeCents)}
           </span>
         ) : null}
-        {canEditIncome && !editing ? (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => setEditing(true)}
-            aria-label={`Editar renda de ${member.displayName}`}
-          >
-            <PencilIcon />
-          </Button>
-        ) : null}
-        {canRemove ? (
-          <ConfirmDialog
-            trigger={
-              <Button variant="ghost" size="icon-sm" aria-label={`Remover ${member.displayName}`}>
-                <UserMinusIcon />
-              </Button>
-            }
-            title={`Remover ${member.displayName}?`}
-            description="A pessoa perde o acesso a este workspace. As transações já lançadas continuam aqui."
-            confirmLabel="Remover"
-            successMessage="Pessoa removida"
-            onConfirm={() => removeMember(workspaceId, member.userId)}
-          />
-        ) : null}
+        <ItemMenu
+          label={`Ações de ${member.displayName}`}
+          actions={[
+            canEditIncome && !editing && { label: "Editar renda", icon: PencilIcon, onSelect: () => setEditing(true) },
+            canTransfer && { label: "Tornar dono", icon: CrownIcon, onSelect: () => setDialog("transfer") },
+            canRemove && {
+              label: "Remover do workspace",
+              icon: UserMinusIcon,
+              destructive: true,
+              onSelect: () => setDialog("remove"),
+            },
+          ]}
+        />
+        <ConfirmDialog
+          open={dialog === "remove"}
+          onOpenChange={(open) => !open && setDialog(null)}
+          title={`Remover ${member.displayName}?`}
+          description="A pessoa perde o acesso a este workspace."
+          details={
+            <ImpactList
+              items={[
+                "Os lançamentos dela continuam aqui, e o acerto do casal continua contando com ela.",
+                "Contas e sonhos que eram dela passam a ser do casal.",
+                "Recorrências pagas por ela são pausadas.",
+              ]}
+            />
+          }
+          confirmLabel="Remover"
+          successMessage="Pessoa removida"
+          onConfirm={() => removeMember(workspaceId, member.userId)}
+        />
+        <ConfirmDialog
+          open={dialog === "transfer"}
+          onOpenChange={(open) => !open && setDialog(null)}
+          title={`Tornar ${member.displayName} dono do workspace?`}
+          description="Você continua no workspace como membro."
+          details={
+            <ImpactList
+              items={[
+                `${member.displayName} passa a poder convidar, remover pessoas, renomear e excluir o workspace.`,
+                "Depois disso, você pode sair do workspace se quiser.",
+              ]}
+            />
+          }
+          confirmLabel="Transferir"
+          successMessage={`${member.displayName} agora é dono do workspace`}
+          onConfirm={() => transferOwnership(workspaceId, member.userId)}
+        />
       </div>
 
       {editing ? (

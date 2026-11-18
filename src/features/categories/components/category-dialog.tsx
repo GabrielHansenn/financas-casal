@@ -28,16 +28,26 @@ export function CategoryDialog({
   category,
   defaultType = "expense",
   trigger,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   workspaceId: string;
   category?: ManagedCategory;
   defaultType?: CategoryType;
-  trigger: ReactElement;
+  /** Opens the dialog; omit it and use `open`/`onOpenChange` to control it (e.g. from an ItemMenu) */
+  trigger?: ReactElement;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = (next: boolean) => {
+    setUncontrolledOpen(next);
+    onOpenChange?.(next);
+  };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger} />
+      {trigger ? <DialogTrigger render={trigger} /> : null}
       <DialogContent className="max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{category ? "Editar categoria" : "Nova categoria"}</DialogTitle>

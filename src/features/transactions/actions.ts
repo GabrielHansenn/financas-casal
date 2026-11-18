@@ -4,8 +4,15 @@ import { refresh } from "next/cache";
 import { z } from "@/lib/zod";
 import { getWorkspaceContext } from "@/features/workspaces/active-workspace";
 import { createClient } from "@/lib/supabase/server";
+import { referenceErrorMessage } from "@/lib/db-errors";
 import { computeSplits, SPLIT_ERROR_MESSAGES } from "@/lib/splits";
-import { transactionInputSchema } from "./schemas";
+import {
+  transactionInputSchema,
+  transactionSnapshotSchema,
+  type TransactionInput,
+  type TransactionSnapshot,
+} from "./schemas";
+import { involvesFormerMember } from "./former-members";
 
 export type SaveTransactionResult =
   | { ok: true; id: string; warning?: string }
@@ -29,6 +36,13 @@ export async function saveTransaction(raw: unknown): Promise<SaveTransactionResu
 
   const supabase = await createClient();
   const isShared = workspace.type === "shared";
+
+  // A shared expense involving someone who left the workspace keeps its amount and split
+  // (they can't be recomputed without that person): only the other fields can change.
+  if (input.id && isShared) {
+    const locked = await saveLockedEdit(supabase, workspace.id, input);
+    if (locked) return locked;
+  }
 
   // Normalize by type
   const isExpense = input.type === "expense";
@@ -78,6 +92,8 @@ export async function saveTransaction(raw: unknown): Promise<SaveTransactionResu
 
   if (error || !id) {
     console.error("[transactions] save_transaction", error?.code, error?.message);
+    const referenceError = referenceErrorMessage(error);
+    if (referenceError) return { ok: false, error: referenceError };
     switch (error?.code) {
       case "23503":
         return { ok: false, error: "Conta ou categoria inválida para este workspace." };
@@ -96,12 +112,92 @@ export async function saveTransaction(raw: unknown): Promise<SaveTransactionResu
   return { ok: true, id, warning };
 }
 
-export async function deleteTransaction(id: string): Promise<{ ok: true } | { ok: false; error: string }> {
+type Supabase = Awaited<ReturnType<typeof createClient>>;
+
+/**
+ * Edit of a transaction that involves a former member. Returns null when the transaction
+ * doesn't involve one (the normal save path runs). Otherwise updates only description, date,
+ * account and category, and rejects changes to type, amount, payer or split.
+ */
+async function saveLockedEdit(
+  supabase: Supabase,
+  workspaceId: string,
+  input: TransactionInput,
+): Promise<SaveTransactionResult | null> {
+  const id = input.id;
+  if (!id) return null;
+  const [{ data: current }, { data: members }] = await Promise.all([
+    supabase
+      .from("transactions")
+      .select("type, amount_cents, paid_by, split_type, splits:transaction_splits(user_id)")
+      .eq("id", id)
+      .eq("workspace_id", workspaceId)
+      .maybeSingle(),
+    supabase.from("workspace_members").select("user_id").eq("workspace_id", workspaceId),
+  ]);
+  if (!current || !members) return null;
+
+  const involved = {
+    paidBy: current.paid_by,
+    splitUserIds: current.splits.map((s) => s.user_id),
+  };
+  if (!involvesFormerMember(involved, members.map((m) => m.user_id))) return null;
+
+  if (
+    input.type !== current.type ||
+    input.amountCents !== current.amount_cents ||
+    (current.type === "expense" && (input.paidBy ?? current.paid_by) !== current.paid_by) ||
+    input.splitType !== current.split_type
+  ) {
+    return {
+      ok: false,
+      error:
+        "Esta despesa envolve alguém que saiu do workspace. Dá para mudar descrição, data, conta e categoria, mas não o valor nem a divisão.",
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("transactions")
+    .update({
+      description: input.description?.trim() || null,
+      date: input.date,
+      account_id: input.accountId,
+      category_id: current.type === "transfer" ? null : (input.categoryId ?? null),
+    })
+    .eq("id", id)
+    .eq("workspace_id", workspaceId)
+    .select("id");
+
+  if (error) {
+    console.error("[transactions] locked edit", error.code, error.message);
+    return { ok: false, error: referenceErrorMessage(error) ?? "Não foi possível salvar. Tente novamente." };
+  }
+  if (data.length === 0) return { ok: false, error: "Transação não encontrada." };
+  refresh();
+  return { ok: true, id: id };
+}
+
+/**
+ * Deletes a transaction and returns a snapshot of it (with its exact splits), so the
+ * "Desfazer" toast can recreate it with restoreTransaction.
+ */
+export async function deleteTransaction(
+  id: string,
+): Promise<{ ok: true; snapshot: TransactionSnapshot | null } | { ok: false; error: string }> {
   const parsed = z.guid().safeParse(id);
   if (!parsed.success) return { ok: false, error: "Transação inválida." };
 
   await getWorkspaceContext();
   const supabase = await createClient();
+  const { data: row } = await supabase
+    .from("transactions")
+    .select(
+      `workspace_id, type, account_id, to_account_id, category_id, amount_cents, date, description, paid_by,
+       split_type, recurring_id, source, splits:transaction_splits(user_id, amount_cents)`,
+    )
+    .eq("id", parsed.data)
+    .maybeSingle();
+
   // Splits are removed by ON DELETE CASCADE; RLS limits this to the user's workspaces
   const { data, error } = await supabase.from("transactions").delete().eq("id", parsed.data).select("id");
 
@@ -111,6 +207,60 @@ export async function deleteTransaction(id: string): Promise<{ ok: true } | { ok
   }
   if (data.length === 0) return { ok: false, error: "Transação não encontrada." };
 
+  refresh();
+  const snapshot: TransactionSnapshot | null = row
+    ? {
+        workspaceId: row.workspace_id,
+        type: row.type,
+        accountId: row.account_id,
+        toAccountId: row.to_account_id,
+        categoryId: row.category_id,
+        amountCents: row.amount_cents,
+        date: row.date,
+        description: row.description,
+        paidBy: row.paid_by,
+        splitType: row.split_type,
+        splits: row.splits.map((s) => ({ userId: s.user_id, amountCents: s.amount_cents })),
+        recurringId: row.recurring_id,
+        source: row.source,
+      }
+    : null;
+  return { ok: true, snapshot };
+}
+
+/** Recreates a deleted transaction exactly as it was (the "Desfazer" of deleteTransaction). */
+export async function restoreTransaction(raw: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+  const parsed = transactionSnapshotSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: "Não foi possível desfazer." };
+  const s = parsed.data;
+
+  const { workspaces } = await getWorkspaceContext();
+  if (!workspaces.some((w) => w.id === s.workspaceId)) return { ok: false, error: "Não foi possível desfazer." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("save_transaction", {
+    p_workspace_id: s.workspaceId,
+    p_type: s.type,
+    p_account_id: s.accountId,
+    p_to_account_id: s.toAccountId ?? undefined,
+    p_category_id: s.categoryId ?? undefined,
+    p_amount_cents: s.amountCents,
+    p_date: s.date,
+    p_description: s.description ?? undefined,
+    p_paid_by: s.paidBy ?? undefined,
+    p_split_type: s.splitType,
+    p_splits: s.splits.map((split) => ({ user_id: split.userId, amount_cents: split.amountCents })),
+    p_recurring_id: s.recurringId ?? undefined,
+    p_source: s.source,
+  });
+
+  if (error) {
+    console.error("[transactions] restore", error.code, error.message);
+    return {
+      ok: false,
+      error: referenceErrorMessage(error) ?? "Não foi possível desfazer. Lance de novo, se precisar.",
+    };
+  }
   refresh();
   return { ok: true };
 }

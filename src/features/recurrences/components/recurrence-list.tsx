@@ -1,11 +1,12 @@
 "use client";
 
-import { CalendarClockIcon, PauseIcon, PlayIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { CalendarClockIcon, PauseIcon, PencilIcon, PlayIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { CategoryIcon } from "@/components/category-icon";
-import { ConfirmDialog } from "@/components/confirm-dialog";
+import { ConfirmDialog, ImpactList } from "@/components/confirm-dialog";
 import { EmptyState } from "@/components/empty-state";
+import { ItemMenu } from "@/components/item-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDateBR } from "@/lib/dates";
@@ -50,6 +51,14 @@ export function RecurrenceList({
   const accountName = (id: string) => options.accounts.find((a) => a.id === id)?.name ?? "Conta";
   const payerName = (id: string | null) =>
     id === data.currentUserId ? "você" : (data.members.find((m) => m.userId === id)?.displayName ?? "ex-membro");
+
+  const [toDelete, setToDelete] = useState<RecurrenceItem | null>(null);
+  // Archiving an account/category pauses its recurrences; say so on the badge
+  const archivedReason = (r: RecurrenceItem) => {
+    if (options.accounts.find((a) => a.id === r.accountId)?.archived) return "conta arquivada";
+    if (r.categoryId && options.categories.find((c) => c.id === r.categoryId)?.archived) return "categoria arquivada";
+    return null;
+  };
 
   const show = (target: RecurrenceItem | "new") => {
     setEditing(target);
@@ -98,27 +107,30 @@ export function RecurrenceList({
                     if (data.workspaceType === "shared" && r.type === "expense" && r.splitType !== "none") {
                       details.push(`${payerName(r.paidBy)} paga · ${SPLIT_TYPE_LABELS[r.splitType].toLowerCase()}`);
                     }
+                    const pausedBecause = archivedReason(r);
                     return (
-                      <li key={r.id}>
+                      <li key={r.id} className="flex items-center pr-1">
                         <button
                           type="button"
                           onClick={() => show(r)}
                           className={cn(
-                            "flex w-full items-center gap-3 px-3 py-3 text-left transition-colors outline-none first:rounded-t-xl last:rounded-b-xl hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50",
+                            "flex min-w-0 flex-1 items-center gap-3 rounded-l-xl py-3 pr-1 pl-3 text-left transition-colors outline-none hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50",
                             status !== "active" && "opacity-70",
                           )}
                         >
                           <CategoryIcon icon={cat?.icon ?? "repeat"} color={cat?.color ?? "#64748b"} />
                           <span className="grid min-w-0 flex-1 gap-0.5">
                             <span className="truncate font-medium">
-                              {r.description || cat?.name || (r.type === "income" ? "Receita" : "Despesa")}
+                              {titleOf(r, cat?.name)}
                             </span>
                             <span className="truncate text-xs text-muted-foreground">{details.join(" · ")}</span>
                             <span className="text-xs text-muted-foreground">
                               {status === "active" ? (
                                 `Próximo: ${formatDateBR(r.nextDate)}`
                               ) : status === "paused" ? (
-                                <Badge variant="secondary">Pausada</Badge>
+                                <Badge variant="secondary">
+                                  {pausedBecause ? `Pausada · ${pausedBecause}` : "Pausada"}
+                                </Badge>
                               ) : (
                                 `Terminou em ${formatDateBR(r.endDate!)}`
                               )}
@@ -134,6 +146,17 @@ export function RecurrenceList({
                             {formatBRL(r.amountCents)}
                           </span>
                         </button>
+                        <ItemMenu
+                          label={`Ações da recorrência ${titleOf(r, cat?.name)}`}
+                          actions={[
+                            { label: "Editar", icon: PencilIcon, onSelect: () => show(r) },
+                            status !== "finished" &&
+                              (r.active
+                                ? { label: "Pausar", icon: PauseIcon, onSelect: () => togglePaused(r), disabled: pending }
+                                : { label: "Retomar", icon: PlayIcon, onSelect: () => togglePaused(r), disabled: pending }),
+                            { label: "Excluir", icon: Trash2Icon, destructive: true, onSelect: () => setToDelete(r) },
+                          ]}
+                        />
                       </li>
                     );
                   })}
@@ -176,25 +199,44 @@ export function RecurrenceList({
                 )}
               </Button>
             ) : null}
-            <ConfirmDialog
-              trigger={
-                <Button variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
-                  <Trash2Icon aria-hidden /> Excluir recorrência
-                </Button>
-              }
-              title="Excluir recorrência?"
-              description="Ela para de gerar lançamentos. Os lançamentos já criados continuam na lista de transações."
-              confirmLabel="Excluir"
-              successMessage="Recorrência excluída"
-              onConfirm={async () => {
-                const result = await deleteRecurrence(selected.id);
-                if (result.ok) setOpen(false);
-                return result;
-              }}
-            />
+            <Button
+              variant="ghost"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => setToDelete(selected)}
+            >
+              <Trash2Icon aria-hidden /> Excluir recorrência
+            </Button>
           </div>
         ) : null}
       </TransactionSheet>
+
+      <ConfirmDialog
+        open={toDelete !== null}
+        onOpenChange={(next) => !next && setToDelete(null)}
+        title="Excluir recorrência?"
+        description={toDelete ? `${titleOf(toDelete)} de ${formatBRL(toDelete.amountCents)}, ${describeSchedule(toDelete.startDate, toDelete.frequency).toLowerCase()}.` : ""}
+        details={
+          <ImpactList
+            items={[
+              "Ela para de gerar lançamentos.",
+              "Os lançamentos já criados por ela continuam na lista de transações.",
+              "Se quiser só interromper por um tempo, use Pausar.",
+            ]}
+          />
+        }
+        confirmLabel="Excluir"
+        successMessage="Recorrência excluída"
+        onConfirm={async () => {
+          if (!toDelete) return { ok: false, error: "Recorrência não encontrada." };
+          const result = await deleteRecurrence(toDelete.id);
+          if (result.ok) setOpen(false);
+          return result;
+        }}
+      />
     </>
   );
+}
+
+function titleOf(r: RecurrenceItem, categoryName?: string): string {
+  return r.description || categoryName || (r.type === "income" ? "Receita" : "Despesa");
 }
